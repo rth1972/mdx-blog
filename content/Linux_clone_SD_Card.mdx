@@ -1,0 +1,161 @@
+---
+title: Clone SD Card in Linux
+date: '2025-02-14'
+tags: ['Linux', 'code']
+draft: false
+summary: How to clone a SD card in Linux.
+images: []
+---
+
+Cloning an SD card in Linux involves creating an exact copy of the entire SD card, including its partitions and data. This can be done using tools like `dd`, `gnome-disks`, or `Etcher`. Below are the steps for each method:
+
+---
+
+### **Method 1: Using `dd` (Command Line)**
+`dd` is a powerful command-line tool for copying and converting data at a low level.
+
+#### Steps:
+1. **Insert the SD Card**:
+   - Insert the SD card into your computer's card reader.
+
+2. **Identify the SD Card**:
+   - Run the following command to list all storage devices:
+     ```bash
+     lsblk
+     ```
+   - Identify your SD card (e.g., `/dev/sdX` or `/dev/mmcblk0`). Be careful to choose the correct device, as `dd` can overwrite data irreversibly.
+
+3. **Unmount the SD Card**:
+   - Unmount all partitions on the SD card:
+     ```bash
+     sudo umount /dev/sdX1
+     sudo umount /dev/sdX2
+     ```
+     Replace `/dev/sdX1` and `/dev/sdX2` with the actual partition names.
+
+4. **Clone the SD Card**:
+   - Use `dd` to clone the SD card to an image file or directly to another SD card.
+
+   **Option 1: Clone to an Image File**:
+   ```bash
+   sudo dd if=/dev/sdX of=sd_card_backup.img bs=4M status=progress
+   ```
+   - `if=/dev/sdX`: Input file (source SD card).
+   - `of=sd_card_backup.img`: Output file (image file).
+   - `bs=4M`: Block size (improves speed).
+   - `status=progress`: Shows progress.
+
+   **Option 2: Clone Directly to Another SD Card**:
+   ```bash
+   sudo dd if=/dev/sdX of=/dev/sdY bs=4M status=progress
+   ```
+   - Replace `/dev/sdX` with the source SD card and `/dev/sdY` with the target SD card.
+
+5. **Verify the Clone**:
+   - After cloning, verify the data integrity:
+     ```bash
+     sudo dd if=/dev/sdX bs=4M | sha256sum
+     sudo dd if=/dev/sdY bs=4M | sha256sum
+     ```
+   - Compare the SHA256 checksums to ensure they match.
+
+6. **Eject the SD Card**:
+   - Safely eject the SD card:
+     ```bash
+     sudo eject /dev/sdX
+     ```
+
+---
+
+### **Method 2: Using `gnome-disks` (Graphical Interface)**
+`gnome-disks` is a user-friendly graphical tool for managing disks and partitions.
+
+#### Steps:
+1. **Install `gnome-disks`** (if not already installed):
+   ```bash
+   sudo apt install gnome-disk-utility
+   ```
+
+2. **Open `gnome-disks`**:
+   - Launch `gnome-disks` from your application menu or by running:
+     ```bash
+     gnome-disks
+     ```
+
+3. **Select the Source SD Card**:
+   - In the left panel, select the source SD card.
+
+4. **Create a Disk Image**:
+   - Click the menu button (three horizontal lines) in the top-right corner and select **Create Disk Image**.
+   - Choose a location to save the image file (e.g., `sd_card_backup.img`).
+
+5. **Restore the Disk Image**:
+   - Insert the target SD card.
+   - Select the target SD card in `gnome-disks`.
+   - Click the menu button and select **Restore Disk Image**.
+   - Choose the image file you created earlier and restore it to the target SD card.
+
+6. **Eject the SD Card**:
+   - Safely eject the SD card after the process is complete.
+
+---
+
+### **Method 3: Using `Etcher` (Graphical Interface)**
+`Etcher` is a cross-platform tool for flashing and cloning SD cards.
+
+#### Steps:
+1. **Install Etcher**:
+   - Download and install Etcher from its official website: [https://www.balena.io/etcher/](https://www.balena.io/etcher/).
+
+2. **Launch Etcher**:
+   - Open Etcher from your application menu.
+
+3. **Select the Source SD Card**:
+   - Click **Flash from file** and select the source SD card or an existing image file.
+
+4. **Select the Target SD Card**:
+   - Insert the target SD card and select it in Etcher.
+
+5. **Start the Cloning Process**:
+   - Click **Flash** to start cloning the SD card.
+
+6. **Eject the SD Card**:
+   - Once the process is complete, safely eject the SD card.
+
+---
+
+### **Method 4: Using `cat` (Command Line)**
+`cat` can also be used to clone an SD card, though it lacks progress reporting.
+
+#### Steps:
+1. **Identify the SD Card**:
+   - Use `lsblk` to identify the source and target SD cards.
+
+2. **Unmount the SD Card**:
+   - Unmount all partitions on the SD card:
+     ```bash
+     sudo umount /dev/sdX1
+     sudo umount /dev/sdX2
+     ```
+
+3. **Clone the SD Card**:
+   - Use `cat` to clone the SD card:
+     ```bash
+     sudo cat /dev/sdX > /dev/sdY
+     ```
+   - Replace `/dev/sdX` with the source SD card and `/dev/sdY` with the target SD card.
+
+4. **Eject the SD Card**:
+   - Safely eject the SD card:
+     ```bash
+     sudo eject /dev/sdX
+     ```
+
+---
+
+### **Tips**:
+- **Backup Data**: Always back up important data before cloning.
+- **Check SD Card Size**: Ensure the target SD card is at least as large as the source SD card.
+- **Use a Fast Card Reader**: For faster cloning, use a high-quality USB card reader.
+
+By following these steps, you can easily clone an SD card in Linux using your preferred method.

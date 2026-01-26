@@ -1,0 +1,147 @@
+---
+title: Connecting to MySQL Database in Next.js v15 with mysql2 and bcryptjs
+date: '2025-10-02'
+tags: ["Next.js", "MySQL", "bcryptjs"]
+draft: false
+summary: Learn how to connect to a MySQL database from your Next.js application using the `mysql2` package, and use `bcryptjs` for password hashing. This tutorial will guide you through creating a register page and login page.
+images: []
+---
+
+
+
+# Connecting to MySQL Database in Next.js v15 with mysql2 and bcryptjs (Matches frontmatter)
+
+
+
+## Introduction
+
+
+This tutorial will walk you through connecting to a MySQL database from your Next.js application using the `mysql2` package, and use `bcryptjs` for password hashing. You'll learn how to create a register page and login page that securely store user credentials.
+
+
+
+## Prerequisites
+
+
+- Node.js (14 or higher) installed on your machine
+- A MySQL database created and accessible via a username and password
+- Familiarity with Next.js (v15 or higher)
+- `mysql2` package installed (`npm install mysql2`)
+- `bcryptjs` package installed (`npm install bcrypt`)
+
+
+
+## Step 1: Create a Database Connection Pool
+
+
+In your Next.js project, create a new file named `database.ts` and add the following code:
+```typescript
+import mysql2 from 'mysql2/promise';
+
+const databaseConfig = {
+  host: 'your_host',
+  user: 'your_username',
+  password: 'your_password',
+  database: 'your_database',
+};
+
+const pool = mysql2.createPool({
+  ...databaseConfig,
+  multipleStatements: true,
+});
+
+export default pool;
+```
+Replace the placeholders with your actual MySQL connection details.
+
+
+
+## Step 2: Create a Register Page
+
+
+Create a new file named `register.tsx` and add the following code:
+```typescript
+import { NextPage } from 'next';
+import db from '../database';
+
+const Register: NextPage = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  async function handleRegister() {
+    try {
+      const query = `INSERT INTO users (username, email, password) VALUES ('${username}', '${email}', '${bcrypt.hash(password, 10)}');`;
+      await db.execute(query);
+      console.log('User registered successfully!');
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return (
+    <div>
+      <h1>Register Page</h1>
+      <form>
+        <label>Username:</label>
+        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <br />
+        <label>Email:</label>
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        <br />
+        <label>Password:</label>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <br />
+        <button onClick={handleRegister}>Register</button>
+      </form>
+    </div>
+  );
+};
+
+export default Register;
+```
+This code creates a register page that allows users to input their username, email, and password. The `bcrypt` package is used to hash the password before storing it in the database.
+
+
+
+## Step 3: Create a Login Page
+
+
+Create a new file named `login.tsx` and add the following code:
+```typescript
+import { NextPage } from 'next';
+import db from '../database';
+
+const Login: NextPage = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+
+  async function handleLogin() {
+    try {
+      const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${bcrypt.hash(password, 10)}';`;
+      const [rows] = await db.execute(query);
+      if (rows.length > 0) {
+        console.log('User logged in successfully!');
+      } else {
+        console.error('Invalid credentials');
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  return (
+    <div>
+      <h1>Login Page</h1>
+      <form>
+        <label>Username:</label>
+        <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <br />
+        <label>Password:</label>
+        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <br />
+        <button onClick={handleLogin}>Login</button>
+      </form>
+    </div>
+  );
+}

@@ -1,0 +1,421 @@
+---
+title: 'NextAuth.js Tutorial - MySQL Credentials Setup'
+date: '2025-09-19'
+tags: ['Nextjs', 'MYSQL', 'NextAuth.js']
+draft: false
+summary: 'NextAuth.js is a powerful authentication library. This tutorial shows you how to use the **`CredentialsProvider`** to authenticate users against a **MySQL database**, perfect for a custom email/password login system.'
+images: []
+---
+
+### NextAuth.js Tutorial - MySQL Credentials Setup
+
+NextAuth.js is a powerful authentication library. This tutorial shows you how to use the **`CredentialsProvider`** to authenticate users against a **MySQL database**, perfect for a custom email/password login system.
+
+---
+
+### What You Need
+
+- Next.js app (v13+ recommended)
+    
+- MySQL server running
+    
+- A `users` table with `email` and a securely **hashed** `password` column.
+    
+- **`bcrypt`** to compare passwords.
+    
+- **`mysql2`** to connect to the database.
+    
+
+---
+
+### Step 1: Installation
+
+First, install the necessary packages. `next-auth` is the core library, `bcrypt` is for secure password comparison, and `mysql2` is for connecting to your MySQL database.
+
+Bash
+
+```
+npm install next-auth bcrypt mysql2
+# or
+yarn add next-auth bcrypt mysql2
+```
+
+---
+
+### Step 2: Environment Variables
+
+Create a `.env.local` file in your project root. The `NEXTAUTH_SECRET` is crucial for session security, and the `DATABASE_URL` is for your MySQL connection.
+
+Code snippet
+
+```
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secure-secret-key-here"
+DATABASE_URL="mysql://username:password@localhost:3306/database_name"
+```
+
+To generate a secure `NEXTAUTH_SECRET`, you can use the command: `openssl rand -base64 32`
+
+---
+
+### Step 3: Database Connection Utility
+
+Create a utility file at `lib/db.js` to manage your database connection. This is the same utility from the previous MySQL tutorial.
+
+JavaScript
+
+```
+// lib/db.js
+import mysql from 'mysql2/promise';
+
+export async function createConnection() {
+  const connection = await mysql.createConnection(process.env.DATABASE_URL);
+  return connection;
+}
+```
+
+---
+
+### Step 4: API Route Setup
+
+This is the most critical step. You'll replace the Google and GitHub providers with `CredentialsProvider`. This provider allows you to define your own login logic.
+
+Create the file: pages/api/auth/[...nextauth].js (Pages Router)
+
+or app/api/auth/[...nextauth]/route.js (App Router)
+
+#### For Pages Router:
+
+JavaScript
+
+```
+// pages/api/auth/[...nextauth].js
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcrypt';
+import { createConnection } from '../../../lib/db';
+
+export default NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        let connection;
+        try {
+          connection = await createConnection();
+          const [rows] = await connection.execute(
+            'SELECT * FROM users WHERE email = ?',
+            [credentials.email]
+          );
+
+          if (rows.length === 0) {
+            return null; // User not found
+          }
+
+          const user = rows[0];
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (isPasswordValid) {
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: null, // No profile image for credentials
+            };
+          } else {
+            return null; // Invalid password
+          }
+        } catch (error) {
+          console.error('Authentication Error:', error);
+          return null;
+        } finally {
+          if (connection) {
+            await connection.end();
+          }
+        }
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id;
+      return session;
+    },
+  },
+  pages: {
+    signIn: '/auth/signin',
+  },
+});
+```
+
+#### For App Router:
+
+JavaScript
+
+```
+// app/api/auth/[...nextauth]/route.js
+import NextAuth from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcrypt';
+import { createConnection } from '../../../../lib/db';
+
+const handler = NextAuth({
+  providers: [
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        let connection;
+        try {
+          connection = await createConnection();
+          const [rows] = await connection.execute(
+            'SELECT * FROM users WHERE email = ?',
+            [credentials.email]
+          );
+
+          if (rows.length === 0) {
+            return null;
+          }
+
+          const user = rows[0];
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
+
+          if (isPasswordValid) {
+            return {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              image: null,
+            };
+          } else {
+            return null;
+          }
+        } catch (error) {
+          console.error('Authentication Error:', error);
+          return null;
+        } finally {
+          if (connection) {
+            await connection.end();
+          }
+        }
+      },
+    }),
+  ],
+});
+
+export { handler as GET, handler as POST };
+```
+
+**What happens here:**
+
+- The `CredentialsProvider` is configured with `email` and `password` fields.
+    
+- The `authorize` function is where your login logic goes. It receives the credentials.
+    
+- We connect to MySQL, query for a user with the matching email, and then use **`bcrypt.compare()`** to safely check if the provided password matches the stored hashed password.
+    
+- If both conditions are met, we return a `user` object. If not, we return `null`, and NextAuth.js handles the login failure.
+    
+
+---
+
+### Step 5: Session Provider Setup
+
+This step remains the same as in the original tutorial. You must wrap your app with `SessionProvider` to make session data available to your components.
+
+#### For Pages Router:
+
+JavaScript
+
+```
+// pages/_app.js
+import { SessionProvider } from 'next-auth/react'
+
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
+  return (
+    <SessionProvider session={session}>
+      <Component {...pageProps} />
+    </SessionProvider>
+  )
+}
+```
+
+#### For App Router:
+
+JavaScript
+
+```
+// app/providers.js
+'use client'
+import { SessionProvider } from 'next-auth/react'
+
+export function Providers({ children }) {
+  return (
+    <SessionProvider>
+      {children}
+    </SessionProvider>
+  )
+}
+// app/layout.js
+import { Providers } from './providers'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+---
+
+### Step 6: Custom Sign-In Page
+
+NextAuth.js provides a built-in sign-in page, but for credentials, you'll need a custom one. We'll use a simple form to collect the email and password.
+
+Create the file `pages/auth/signin.js` and add the following:
+
+JavaScript
+
+```
+// pages/auth/signin.js
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/router';
+
+export default function SignIn() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+
+    const result = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (result.error) {
+      setError(result.error);
+    } else {
+      router.push('/'); // Redirect to a protected page on success
+    }
+  };
+
+  return (
+    <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
+      <h1>Sign In</h1>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '10px' }}>
+          <label htmlFor="email">Email:</label>
+          <br />
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+        <div style={{ marginBottom: '10px' }}>
+          <label htmlFor="password">Password:</label>
+          <br />
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            style={{ width: '100%', padding: '8px' }}
+          />
+        </div>
+        <button type="submit" style={{ width: '100%', padding: '10px', cursor: 'pointer' }}>
+          Sign In
+        </button>
+      </form>
+      {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+    </div>
+  );
+}
+```
+
+**Key Features:**
+
+- A form to collect the user's `email` and `password`.
+    
+- `signIn('credentials', ...)` is the key function. It sends the data to the `CredentialsProvider` we configured earlier.
+    
+- We use `redirect: false` to handle the success or failure redirect manually.
+    
+
+---
+
+### Step 7: Use in Your Components
+
+This step is identical to the original tutorial. You'll use `useSession` to check if a user is logged in and conditionally render content.
+
+JavaScript
+
+```
+// components/LoginButton.js
+import { useSession, signOut } from 'next-auth/react'
+
+export default function LoginButton() {
+  const { data: session, status } = useSession()
+
+  if (status === "loading") return <p>Loading...</p>
+
+  if (session) {
+    return (
+      <div>
+        <p>Signed in as {session.user.email}</p>
+        <button onClick={() => signOut()}>Sign out</button>
+      </div>
+    )
+  }
+  
+  // Note: The sign-in link is now managed by the custom sign-in page
+  return (
+    <div>
+      <p>Not signed in</p>
+      <a href="/auth/signin">Sign in</a>
+    </div>
+  )
+}
+```
+
+---
+
+### Next Steps
+
+- **Registration:** Create a separate API route to handle new user registration. **Remember to hash the password with `bcrypt` before inserting it into the database.**
+    
+- **Error Handling:** The `signIn` function can return specific errors, which you can use to give the user more detailed feedback (e.g., "Invalid password" or "Email not found").
+    
+- **Session Management:** For more advanced applications, you may want to manage sessions with a database adapter instead of the default JWT session. This is useful for things like revoking sessions or tracking activity.

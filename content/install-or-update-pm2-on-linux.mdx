@@ -1,0 +1,50 @@
+---
+title: 'Install or update pm2 on Linux'
+date: '2024-05-27'
+tags: ['Linux', 'pm2']
+draft: false
+summary: 'Install or update pm2 on Linux.'
+---
+
+## What is PM2
+
+PM2 (Process Manager 2) is an open-source production-ready Node.js process manager. It provides several essential features for managing Node.js applications in a production environment:
+
+1. **Automatic Load Balancing:** PM2 includes a built-in load balancer that distributes incoming requests across multiple application instances. This improves performance and reliability, especially on multi-core machines.
+
+1. **Declarative Application Configuration:** You can define your application’s configuration (such as environment variables, arguments, and execution options) in a declarative way using PM2. This makes it easier to manage and maintain your applications.
+
+1. **Zero Downtime Reload:** PM2 allows you to update your application without any downtime. When you reload your app, PM2 gracefully transitions to the new version, ensuring uninterrupted service.
+
+1. **Log Management:** PM2 provides tools for managing logs. You can view logs in various formats (standard, raw, JSON, or formatted) and easily consult them using commands like pm2 logs.
+
+1. **Startup Scripts:** You can create startup scripts to ensure that your Node.js applications automatically start when the system boots up. PM2 makes it straightforward to set up these scripts.
+
+1. **Monitoring and Metrics:** PM2 offers monitoring capabilities, allowing you to track application metrics, resource usage, and other vital information. You can enable host monitoring and use terminal-based monitoring as well.
+
+1. **Container Support:** With the pm2-runtime command, you can run your Node.js applications in a production environment seamlessly. It’s a drop-in replacement for the node command.
+
+In summary, PM2 simplifies the management of Node.js applications, making them more robust, scalable, and reliable in production. If you have any further questions, feel free to ask! 😊
+
+For more details, you can visit the [official PM2 website](https://pm2.keymetrics.io/).
+
+
+## Install PM2 (if not already installed)
+
+If you haven’t installed PM2 yet, you can do so using the following command:
+
+```javascript:Terminal
+npm install pm2 -g
+```
+
+## Update PM2
+
+To update PM2 to the latest version, run:
+```
+npm install pm2@latest -g && pm2 update
+```
+
+The pm2 update command ensures that the in-memory PM2 daemon is refreshed with the latest changes.
+That’s it! Your PM2 installation should now be up to date. If you encounter any issues or need further assistance, feel free to ask! 😊
+
+For more details, you can refer to the [official PM2 documentation](https://pm2.keymetrics.io/docs/usage/update-pm2/).

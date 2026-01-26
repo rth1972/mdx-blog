@@ -1,0 +1,71 @@
+---
+title: Create clock component NextJS
+date: '2024-06-10'
+tags: ['NextJS', 'code']
+draft: false
+summary: How to create a clock component in NextJS.
+images: ['clock.jpeg']
+---
+
+## How to Create a live clock component in Nextjs.
+
+Here's a step-by-step breakdown:
+
+1. **Importing Dependencies**: The first line imports the `React` library, along with the `useState` and `useEffect` hooks from 'react'.
+
+```jsx
+import React, { useState, useEffect } from 'react';
+```
+
+2. **Type Definition**: The `Props` type is defined to specify the shape of the props that the `Clock` component expects. It expects an object with a `time` property of type `number`.
+
+```jsx
+type Props = {
+  time:number
+}
+```
+
+3. **Clock Component**: The `Clock` component is defined as a functional component that takes `Props` as its argument. The `time` property from the props is destructured and renamed to `initial`.
+
+```jsx
+const Clock = ({time: initial}: Props) => {
+```
+
+4. **State Initialization**: The `useState` hook is used to create a state variable `time` and a function `setTime` to update it. The initial state is set to a new `Date` object created with the `initial` prop.
+
+```jsx
+const [isClient, setIsClient] = useState(false);
+const [time, setTime] = useState(new Date(initial))
+```
+
+5. **Effect Hook**: The `useEffect` hook is used to create a side effect that runs after render. In this case, it sets up a timer that updates the `time` state every second.
+
+```jsx
+useEffect(() => {
+ setIsClient(true);
+  const timer = setInterval(() => {
+    setTime(new Date())
+  }, 1000)
+
+  return () =>  clearInterval(timer)
+}, []);
+```
+
+6. **Rendering**: The component returns a `div` element that displays the current time and date.
+
+```jsx
+return (
+  <div className=&quot;relative w-full flex flex-col&quot;>
+      <div>{time.toLocaleTimeString()}</div>
+      <div>{time.toLocaleDateString()}</div>
+  </div>
+);
+```
+
+7. **Exporting the Component**: Finally, the `Clock` component is exported for use in other parts of the application.
+
+```jsx
+export default Clock
+```
+
+This component will display the current time and date, and it will update every second. The time and date are displayed using the `toLocaleTimeString` and `toLocaleDateString` methods of the `Date` object, which format the time and date according to the user's locale. The `useEffect` hook ensures that the timer is cleared when the component is unmounted, preventing memory leaks. I hope this explanation helps! Let me know if you have any other questions. 😊

@@ -1,0 +1,260 @@
+---
+title: "How to Secure SSH on Linux/Ubuntu"
+date: "2026-01-22"
+tags: ['Linux', 'Ubuntu', 'Security', 'SSH']
+draft: false
+description: "A complete step-by-step guide to hardening SSH on Linux/Ubuntu for improved security and reduced attack surface."
+images: []
+---
+
+
+# 🔐 **Securing SSH on Linux/Ubuntu — Tutorial**
+
+SSH is the primary remote‑access method for Linux systems, which makes it a high‑value target. Hardening it reduces attack surface, improves auditability, and protects your infrastructure.
+
+This guide covers:
+
+- Understanding SSH risks  
+- Hardening the SSH configuration  
+- Strengthening authentication  
+- Restricting access  
+- Monitoring and maintenance  
+
+Everything here is safe, defensive, and appropriate for legitimate system administration.
+
+---
+
+# 1. 🧠 **Understand the Risks**
+
+Before securing SSH, it helps to know what attackers typically target:
+
+- Password‑guessing attempts  
+- Default or weak credentials  
+- Exposed SSH ports  
+- Outdated cryptographic algorithms  
+- Unrestricted access from the internet  
+- Lack of monitoring or rate limiting  
+
+Your goal is to reduce exposure and enforce strong authentication.
+
+---
+
+# 2. 🔧 **Update Your System**
+
+Keeping the system updated ensures you have the latest security patches.
+
+```bash
+sudo apt update && sudo apt upgrade
+```
+
+---
+
+# 3. 🔑 **Set Up SSH Key Authentication**
+
+SSH keys are far stronger than passwords.
+
+### Generate a key pair (on your local machine)
+
+```bash
+ssh-keygen -t ed25519
+```
+
+### Copy the public key to the server
+
+```bash
+ssh-copy-id user@server-ip
+```
+
+This installs your public key into:
+
+```
+~/.ssh/authorized_keys
+```
+
+---
+
+# 4. 🛡️ **Harden the SSH Configuration**
+
+Edit the SSH daemon config:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Apply these defensive settings:
+
+### ✔ Disable root login
+
+```
+PermitRootLogin no
+```
+
+### ✔ Disable password authentication (after confirming key login works)
+
+```
+PasswordAuthentication no
+```
+
+### ✔ Disable empty passwords
+
+```
+PermitEmptyPasswords no
+```
+
+### ✔ Use modern cryptography
+
+```
+KexAlgorithms sntrup761x25519-sha512@openssh.com
+HostKeyAlgorithms ssh-ed25519
+PubkeyAcceptedAlgorithms ssh-ed25519
+```
+
+### ✔ Limit authentication attempts
+
+```
+MaxAuthTries 3
+```
+
+### ✔ Reduce login grace time
+
+```
+LoginGraceTime 20
+```
+
+### ✔ Optional: Change the SSH port
+
+This doesn’t replace real security, but it reduces noise from automated scans.
+
+```
+Port 2222
+```
+
+### Restart SSH
+
+```bash
+sudo systemctl restart ssh
+```
+
+---
+
+# 5. 🌍 **Restrict SSH Access by IP (Optional but Strong)**
+
+If you know where you’ll connect from, restrict access using UFW.
+
+### Allow only your IP
+
+```bash
+sudo ufw allow from YOUR.IP.ADDRESS.HERE to any port 22
+```
+
+### Or allow a trusted subnet
+
+```bash
+sudo ufw allow from 192.168.1.0/24 to any port 22
+```
+
+### Enable UFW
+
+```bash
+sudo ufw enable
+```
+
+---
+
+# 6. 🚫 **Use Fail2Ban for Brute‑Force Protection**
+
+Fail2Ban monitors logs and blocks abusive IPs.
+
+Install:
+
+```bash
+sudo apt install fail2ban
+```
+
+Create a local jail config:
+
+```bash
+sudo nano /etc/fail2ban/jail.local
+```
+
+Example:
+
+```
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+maxretry = 3
+bantime = 1h
+findtime = 10m
+```
+
+Restart:
+
+```bash
+sudo systemctl restart fail2ban
+```
+
+Check status:
+
+```bash
+sudo fail2ban-client status sshd
+```
+
+---
+
+# 7. 📜 **Enable Logging & Monitoring**
+
+SSH logs are stored in:
+
+```
+/var/log/auth.log
+```
+
+Monitor login attempts:
+
+```bash
+sudo grep "Failed password" /var/log/auth.log
+```
+
+Track successful logins:
+
+```bash
+sudo grep "Accepted" /var/log/auth.log
+```
+
+This helps detect suspicious activity early.
+
+---
+
+# 8. 🧪 **Test Everything Before Closing Your Session**
+
+Always open a **second SSH session** before restarting or locking down SSH.  
+This prevents locking yourself out.
+
+Checklist:
+
+- Can you log in with your new user?  
+- Does key authentication work?  
+- Is root login disabled?  
+- Are password logins disabled?  
+- Does Fail2Ban block failed attempts?  
+
+Only after confirming everything works should you close your original session.
+
+---
+
+# 🎯 **Final Hardening Checklist**
+
+| Security Feature | Status |
+|------------------|--------|
+| SSH keys enabled | ✔ |
+| Password login disabled | ✔ |
+| Root login disabled | ✔ |
+| Fail2Ban active | ✔ |
+| UFW firewall configured | ✔ |
+| Strong cryptography | ✔ |
+| Logging enabled | ✔ |
+| Optional: 2FA | ✔ |
+
+

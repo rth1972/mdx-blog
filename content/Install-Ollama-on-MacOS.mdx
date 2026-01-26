@@ -1,0 +1,93 @@
+---
+title: 'Install Ollama and llama3 on MacOS'
+date: '2024-05-24'
+tags: ['Ollama', 'guide']
+draft: false
+summary: 'Guide on how to install Ollama and Llama3 on MacOS.'
+---
+
+# Install Ollama on MacOS
+
+### what is Ollama?
+
+Ollama is an open-source tool that allows you to run and customize large language models locally on your own machine.
+
+Here are some key points about Ollama:
+
+* Local Integration: Ollama enables you to work with language models directly on your machine, avoiding the need for external services or APIs.
+* Model Support: It supports various language models, including Llama 3, Mistral, Gemma, and more. You can choose the model that best suits your needs.
+* CLI and REST API: Ollama provides a command-line interface (CLI) for running and customizing models. Additionally, it offers a REST API for programmatic access.
+* Customization: You can create and customize models using Ollama. For example, you can adjust parameters like temperature to control creativity and coherence.
+* Model Library: Ollama includes a library of pre-trained models that you can download and use. These models cover a range of sizes and capabilities.
+* RAM Requirements: Keep in mind that running larger models (e.g., 7B models) may require a minimum of 8 GB of available RAM.
+
+
+### In this article, I will show you how to get started with Ollama on a Mac.
+
+>* These instructions were written for and tested on a Mac (M1, 8GB).
+>* You will have much better success on a Mac that uses Apple Silicon (M1, etc.).
+>* The model will require 5GB of free disk space, which you can free up when not in use.
+
+### Step 1. Download and install Ollama
+* Browse to: [https://ollama.com](https://ollama.com/)
+* Click the Download button
+* Or you could just browse to: [https://ollama.com/download](https://ollama.com/download)
+* Click Download for macOS
+
+>On a Mac, (at the time of this writing) this will download a *.zip file to your ~/Downloads folder.
+
+In Finder double click the *.zip file to extract the contents
+This should extract Ollama.app to your ~/Downloads folder
+Drag Ollama.app to your Applications folder
+You can then delete the downloaded zip file to save space
+
+### Step 2. Setup Ollama
+
+After you download Ollama you will need to run the setup wizard:
+
+In Finder, browse to the Applications folder
+Double-click on Ollama
+When you see the warning, click Open
+Go through the setup wizard where it should prompt you to install the command line version (ollama)
+Then it will give you instructions for running a model
+At the time of this writing, the default instructions show llama2, but llama3 works too
+Click Finish
+
+
+### Step 3. Run llama 3
+You could follow the instruction to run llama 2, but let's jump right in with llama 3
+Open a new Terminal window
+Run this command (note that for this command llama3 is one word):
+
+```javascript:Terminal
+ollama run llama3
+``` 
+
+The first time you run that for a new model, it will download the latest version
+
+
+### Step 4. Chat with llama 3
+
+After the model is downloaded, you should see a prompt like this:
+
+` >>> Send a message (/? for help)`
+
+At the prompt, start chatting with it like any other LLM
+
+### Additional models
+You can use other models, besides just llama2 and llama3.
+
+For more models, click the Models tab on https://ollama.com or visit: https://ollama.com/library
+
+### Code Llama and Llama 3
+Here is what meta.ai says about Code Llama and Llama 3
+
+Code Llama, a separate AI model designed for code understanding and generation, was integrated into LLaMA 3 (Large Language Model Meta AI) to enhance its coding capabilities. This integration enabled LLaMA 3 to leverage Code Llama's expertise in code-related tasks, such as:
+
+Code completion
+Code generation
+Code explanation
+Code review
+The integration allows LLaMA 3 to tap into Code Llama's knowledge base, which was trained on a massive dataset of code from various sources, including open-source repositories and coding platforms. This enables LLaMA 3 to provide more accurate and informative responses to coding-related queries and tasks. In essence, the integration of Code Llama into LLaMA 3 creates a powerful hybrid AI model that can tackle a wide range of tasks, from general knowledge and conversation to coding and software development.
+
+If you have any questions please leave them in the comments.

@@ -1,0 +1,83 @@
+---
+title: Home Assistant, Changing Connectivity to Wifi
+date: '2025-07-2'
+tags: ['Home Assistant', 'code']
+draft: false
+summary: Wifi Setup for Home Assistant.
+---
+
+# 📶 Home Assistant: Wi-Fi Setup Instructions
+
+Follow these steps to connect your Home Assistant device to Wi-Fi:
+
+---
+
+### 1️⃣ Connect Peripherals
+
+Connect a **monitor** and **keyboard** to your Home Assistant device.
+
+---
+
+### 2️⃣ Access the Root Shell
+
+At the `ha>` prompt, enter:
+
+```bash
+login
+```
+This command will change your prompt from ha> to # (the root shell prompt).
+
+3️⃣ Check Wi-Fi Status
+Ensure Wi-Fi is functioning:
+
+
+```bash
+nmcli radio
+```
+4️⃣ Scan for Available Networks
+Initiate a scan:
+
+```bash
+nmcli device wifi rescan
+```
+
+List the available Wi-Fi access points:
+
+```bash
+nmcli device wifi
+```
+
+5️⃣ Connect to Your Wi-Fi
+Connect to your Wi-Fi using your actual SSID and password (include quotes):
+
+```bash
+nmcli device wifi connect "YOUR_SSID" password "YOUR_WIFI_PASSWORD"
+```
+
+This will attempt to connect to your network and generate a profile if successful. You should see output like:
+
+Device 'wlan0' successfully activated with...
+
+
+6️⃣ Show Active Connections
+Check active and saved network connections:
+
+```bash
+nmcli con show
+```
+
+7️⃣ Identify Your IP Address
+Check both Ethernet and Wi-Fi interfaces for assigned IPs:
+
+```bash
+ip addr show
+```
+
+8️⃣ Access Home Assistant
+Open your browser and go to:
+
+```text
+http://your_wifi_ip:8123
+```
+
+Replace your_wifi_ip with the actual IP address you found in the previous step.

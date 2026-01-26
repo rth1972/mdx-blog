@@ -1,0 +1,301 @@
+---
+title: Esp32 with lcd screen
+date: '2025-11-20'
+tags: ['Esp32', 'code']
+draft: false
+summary: Creating a simple program for an ESP32 microcontroller with an OLED display (128x64 pixels)
+images: []
+---
+
+# ESP32 with OLED Display Tutorial
+
+## Introduction
+
+This tutorial will guide you through creating a simple program for an ESP32 microcontroller with an OLED display (128x64 pixels). We'll display some text and graphics on the screen.
+
+## Hardware Requirements
+
+- **ESP32 development board** (any variant)
+- **OLED Display** (128x64 pixels, typically SSD1306 chip)
+- **Connecting wires**
+
+## Wiring Connections
+
+Most OLED displays use I2C communication. Connect as follows:
+
+| OLED Pin | ESP32 Pin | Description |
+|----------|-----------|-------------|
+| VCC | 3.3V | Power supply |
+| GND | GND | Ground |
+| SCL | GPIO 22 | I2C Clock (default) |
+| SDA | GPIO 21 | I2C Data (default) |
+
+## Software Setup
+
+### 1. Install Arduino IDE
+
+If you haven't already, download and install the Arduino IDE from [arduino.cc](https://www.arduino.cc/).
+
+### 2. Install ESP32 Board Support
+
+1. Open Arduino IDE
+2. Go to **File → Preferences**
+3. In "Additional Board Manager URLs", add:
+   ```
+   https://raw.githubusercontent.com/espressif/arduino-esp32/gh-pages/package_esp32_index.json
+   ```
+4. Go to **Tools → Board → Boards Manager**
+5. Search for "ESP32" and install "esp32 by Espressif Systems"
+
+### 3. Install Required Library
+
+1. Go to **Sketch → Include Library → Manage Libraries**
+2. Search for "Adafruit SSD1306"
+3. Install "Adafruit SSD1306" by Adafruit
+4. Also install "Adafruit GFX Library" when prompted (it's a dependency)
+
+## The Code
+
+Here's our complete program with extensive line-by-line explanations:
+
+```cpp
+// Include the Wire library for I2C communication
+// I2C is a protocol that allows multiple devices to communicate using just 2 wires
+#include <Wire.h>
+
+// Include the Adafruit GFX library - this provides graphics functions like drawing shapes
+// GFX stands for "Graphics", and this library handles basic drawing operations
+#include <Adafruit_GFX.h>
+
+// Include the Adafruit SSD1306 library - this is specific to our OLED display chip
+// SSD1306 is the driver chip that controls the OLED display
+#include <Adafruit_SSD1306.h>
+
+// Define the width of our OLED screen in pixels
+// Our display is 128 pixels wide
+#define SCREEN_WIDTH 128
+
+// Define the height of our OLED screen in pixels
+// Our display is 64 pixels tall
+#define SCREEN_HEIGHT 64
+
+// Define the I2C address of the OLED display
+// 0x3C is the most common address for these displays
+// Some displays use 0x3D - if yours doesn't work, try changing this
+#define OLED_ADDR 0x3C
+
+// Create an Adafruit_SSD1306 display object
+// This object will handle all communication with our OLED screen
+// We pass the screen dimensions and the I2C connection (&Wire)
+// The -1 means we're not using a reset pin (not needed for most displays)
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
+
+// The setup() function runs once when the ESP32 starts up or resets
+void setup() {
+  // Initialize serial communication at 115200 baud rate
+  // This allows us to send debugging messages to the Serial Monitor
+  // 115200 is a common speed for ESP32 (faster than Arduino's typical 9600)
+  Serial.begin(115200);
+  
+  // Wait a short time for the serial connection to establish
+  // This ensures our first serial messages don't get lost
+  delay(100);
+  
+  // Print a startup message to the Serial Monitor
+  // This helps us know the program has started running
+  Serial.println("ESP32 OLED Display Tutorial");
+  
+  // Initialize the OLED display
+  // begin() returns true if successful, false if it fails
+  // SSD1306_SWITCHCAPVCC means we're generating the display voltage internally
+  // OLED_ADDR is the I2C address we defined earlier (0x3C)
+  if(!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
+    // If initialization failed, print an error message
+    Serial.println("SSD1306 allocation failed");
+    
+    // Enter an infinite loop - the program stops here
+    // This prevents the rest of the code from running if the display isn't working
+    for(;;); // Don't proceed, loop forever
+  }
+  
+  // If we reach here, the display initialized successfully
+  Serial.println("Display initialized successfully!");
+  
+  // Clear the display buffer
+  // The display has a buffer in memory that holds what will be shown
+  // clearDisplay() sets all pixels to off (black)
+  display.clearDisplay();
+  
+  // Actually send the cleared buffer to the display
+  // Nothing appears on screen until we call display()
+  display.display();
+  
+  // Wait 2 seconds with a blank screen
+  // delay() pauses the program for the specified milliseconds
+  delay(2000);
+  
+  // Call our custom function to show a welcome message
+  showWelcomeMessage();
+  
+  // Wait 3 seconds so we can read the welcome message
+  delay(3000);
+  
+  // Call our custom function to demonstrate drawing shapes
+  demonstrateGraphics();
+}
+
+// This function displays a welcome message on the OLED screen
+void showWelcomeMessage() {
+  // Clear the display buffer to start fresh
+  display.clearDisplay();
+  
+  // Set the text color to WHITE (on a black background)
+  // These OLED displays are monochrome - pixels are either on (white) or off (black)
+  display.setTextColor(SSD1306_WHITE);
+  
+  // Set the text size to 1 (smallest size)
+  // Size 1 = 5x7 pixels per character, Size 2 = 10x14 pixels, etc.
+  display.setTextSize(1);
+  
+  // Set the cursor position to x=0, y=0 (top-left corner)
+  // The cursor is where the next character will be drawn
+  display.setCursor(0, 0);
+  
+  // Print text to the display buffer
+  // This doesn't show on screen yet - just stores it in memory
+  display.println("ESP32 + OLED");
+  
+  // println() automatically moves cursor to the next line
+  display.println("128x64 Display");
+  
+  // Add a blank line for spacing
+  display.println();
+  
+  // Print more information
+  display.println("Tutorial by:");
+  display.println("Arduino IDE");
+  
+  // Now actually send the buffer to the display to make it visible
+  display.display();
+  
+  // Print a message to the Serial Monitor as well
+  Serial.println("Welcome message displayed");
+}
+
+// This function demonstrates various graphics capabilities
+void demonstrateGraphics() {
+  // Clear the screen to start fresh
+  display.clearDisplay();
+  
+  // Draw a rectangle outline
+  // Parameters: x, y, width, height, color
+  // (0, 0) is top-left, so this draws a border around the entire screen
+  display.drawRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+  
+  // Draw a filled circle in the center of the screen
+  // Parameters: center_x, center_y, radius, color
+  // SCREEN_WIDTH/2 = 64 (horizontal center)
+  // SCREEN_HEIGHT/2 = 32 (vertical center)
+  // Radius of 10 pixels
+  display.fillCircle(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, 10, SSD1306_WHITE);
+  
+  // Draw a line from top-left to bottom-right
+  // Parameters: x0, y0, x1, y1, color
+  display.drawLine(0, 0, SCREEN_WIDTH-1, SCREEN_HEIGHT-1, SSD1306_WHITE);
+  
+  // Draw a line from top-right to bottom-left
+  display.drawLine(SCREEN_WIDTH-1, 0, 0, SCREEN_HEIGHT-1, SSD1306_WHITE);
+  
+  // Send the graphics to the display
+  display.display();
+  
+  // Print to Serial Monitor
+  Serial.println("Graphics demonstration displayed");
+  
+  // Wait 3 seconds to view the graphics
+  delay(3000);
+}
+
+// The loop() function runs repeatedly after setup() completes
+// For this simple tutorial, we'll just create a simple animation
+void loop() {
+  // Create a counter that increases from 0 to 127 and repeats
+  // The % operator gives us the remainder, creating a cycling effect
+  static int x = 0;
+  
+  // Clear the display
+  display.clearDisplay();
+  
+  // Set text properties
+  display.setTextSize(2);  // Larger text this time
+  display.setTextColor(SSD1306_WHITE);
+  display.setCursor(10, 10);
+  
+  // Display a counter message
+  display.print("Count: ");
+  display.println(x);
+  
+  // Draw a moving circle
+  // The x position moves across the screen
+  // y position is fixed at screen center
+  display.fillCircle(x, SCREEN_HEIGHT/2, 5, SSD1306_WHITE);
+  
+  // Update the display
+  display.display();
+  
+  // Increment x, and wrap around when it reaches screen width
+  x = (x + 1) % SCREEN_WIDTH;
+  
+  // Wait 50 milliseconds (creates smooth animation)
+  delay(50);
+}
+```
+
+## How to Upload the Code
+
+1. **Select your board**: Go to **Tools → Board → ESP32 Arduino** and select your ESP32 board model (e.g., "ESP32 Dev Module")
+
+2. **Select the port**: Go to **Tools → Port** and select the COM port your ESP32 is connected to
+
+3. **Upload**: Click the **Upload** button (right arrow icon) in the Arduino IDE
+
+4. **Monitor**: Open **Tools → Serial Monitor** to see debugging messages (set baud rate to 115200)
+
+## What the Program Does
+
+1. **Setup Phase**:
+   - Initializes the OLED display
+   - Shows a welcome message for 3 seconds
+   - Demonstrates graphics (rectangle, circles, lines) for 3 seconds
+
+2. **Loop Phase**:
+   - Displays an incrementing counter
+   - Animates a circle moving across the screen
+   - Repeats continuously
+
+## Troubleshooting
+
+### Display doesn't turn on
+- Check your wiring connections
+- Verify the I2C address (try 0x3D if 0x3C doesn't work)
+- Make sure you installed the required libraries
+
+### "SSD1306 allocation failed" error
+- Display isn't responding on I2C bus
+- Check power connections (VCC and GND)
+- Verify SCL and SDA are connected to correct pins
+
+### Upload fails
+- Make sure you selected the correct board and port
+- Try pressing the BOOT button on ESP32 when uploading
+- Check USB cable (some cables are power-only)
+
+## Next Steps
+
+Now that you have the basics working, try:
+- Changing the text and graphics
+- Adding temperature sensor readings
+- Creating custom animations
+- Displaying images (look up bitmap conversion)
+
+Happy coding!

@@ -1,0 +1,337 @@
+---
+
+title: Using Rsync
+
+date: '2025-10-07'
+
+tags: ["General", "Tutorial", "Backup", "Data Transfer"]
+
+draft: false
+
+summary: Learn how to use rsync, a powerful command-line tool for synchronizing files and directories.
+
+images: []
+
+---
+
+
+# rsync Tutorial: Complete Guide
+
+## What is rsync?
+
+`rsync` (remote sync) is a powerful file synchronization and transfer tool for Unix-like systems. It's designed to efficiently copy and synchronize files both locally and remotely by only transferring the differences between source and destination files.
+
+### Key Features
+- **Incremental transfers**: Only copies changed portions of files
+- **Compression**: Can compress data during transfer
+- **Preservation**: Maintains permissions, timestamps, ownership, and symlinks
+- **Remote capabilities**: Works over SSH for secure transfers
+- **Resumable**: Can continue interrupted transfers
+- **Bandwidth limiting**: Control transfer speed
+
+---
+
+## Basic Syntax
+
+```bash
+rsync [OPTIONS] SOURCE DESTINATION
+```
+
+---
+
+## Common Options
+
+| Option | Description |
+|--------|-------------|
+| `-a, --archive` | Archive mode (preserves permissions, timestamps, etc.) |
+| `-v, --verbose` | Verbose output |
+| `-z, --compress` | Compress data during transfer |
+| `-h, --human-readable` | Human-readable output |
+| `-r, --recursive` | Recurse into directories |
+| `-u, --update` | Skip files that are newer on destination |
+| `-n, --dry-run` | Perform trial run without changes |
+| `-P` | Show progress and keep partial files |
+| `-X, --xattrs` | Preserve extended attributes |
+| `--delete` | Delete files in destination not in source |
+| `--exclude` | Exclude files matching pattern |
+| `--include` | Include files matching pattern |
+
+---
+
+## Basic Examples
+
+### 1. Copy a file locally
+```bash
+rsync file.txt /backup/
+```
+
+### 2. Copy a directory locally (with trailing slash)
+```bash
+# Copies CONTENTS of dir1 into dir2
+rsync -av dir1/ dir2/
+
+# Copies dir1 ITSELF into dir2
+rsync -av dir1 dir2/
+```
+
+**Important**: The trailing slash makes a huge difference!
+- `dir1/` = copy contents of dir1
+- `dir1` = copy dir1 itself
+
+### 3. Sync with progress bar
+```bash
+rsync -avP source/ destination/
+```
+
+### 4. Dry run (test without making changes)
+```bash
+rsync -avn source/ destination/
+```
+
+---
+
+## Remote Transfer Examples
+
+### 1. Copy to remote server
+```bash
+rsync -avz /local/path/ user@remote-host:/remote/path/
+```
+
+### 2. Copy from remote server
+```bash
+rsync -avz user@remote-host:/remote/path/ /local/path/
+```
+
+### 3. Use specific SSH port
+```bash
+rsync -avz -e "ssh -p 2222" source/ user@host:/destination/
+```
+
+### 4. Using SSH key
+```bash
+rsync -avz -e "ssh -i ~/.ssh/my_key" source/ user@host:/destination/
+```
+
+---
+
+## Advanced Examples
+
+### 1. Sync and delete files not in source
+```bash
+rsync -av --delete source/ destination/
+```
+⚠️ **Warning**: This will delete files in destination that don't exist in source!
+
+### 2. Exclude certain files/directories
+```bash
+# Exclude single pattern
+rsync -av --exclude='*.tmp' source/ destination/
+
+# Exclude multiple patterns
+rsync -av --exclude='*.log' --exclude='cache/' source/ destination/
+
+# Exclude from file
+rsync -av --exclude-from='exclude-list.txt' source/ destination/
+```
+
+### 3. Include only certain files
+```bash
+rsync -av --include='*.jpg' --exclude='*' source/ destination/
+```
+
+### 4. Backup with timestamp
+```bash
+rsync -av source/ destination/backup-$(date +%Y%m%d)/
+```
+
+### 5. Limit bandwidth (in KB/s)
+```bash
+rsync -av --bwlimit=1000 source/ destination/
+```
+
+### 6. Show what will be deleted
+```bash
+rsync -avn --delete source/ destination/
+```
+
+---
+
+## Practical Use Cases
+
+### Backup home directory to external drive
+```bash
+rsync -aAXv --delete --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /mnt/backup/
+```
+
+### Sync website to server
+```bash
+rsync -avz --delete ~/website/ user@server:/var/www/html/
+```
+
+### Mirror directories
+```bash
+rsync -av --delete /source/dir/ /backup/dir/
+```
+
+### Copy only updated files
+```bash
+rsync -avu source/ destination/
+```
+
+---
+
+## Important Warnings and Gotchas
+
+### ⚠️ Critical Warnings
+
+1. **The Trailing Slash Problem**
+   ```bash
+   rsync -av /source /dest    # Creates /dest/source
+   rsync -av /source/ /dest   # Copies contents to /dest
+   ```
+
+2. **The --delete Flag**
+   - Using `--delete` will remove files in destination not in source
+   - ALWAYS do a dry run first: `rsync -avn --delete source/ dest/`
+   - Can cause data loss if used incorrectly
+
+3. **Root Directory Sync**
+   - Be extremely careful syncing `/`
+   - Always exclude system directories
+   - One wrong command can break your system
+
+4. **Permissions on Remote Systems**
+   - May need sudo on remote: `rsync -av source/ user@host:/root/dest/` won't work
+   - Use: `rsync -av source/ user@host:~/dest/ && ssh user@host 'sudo mv ~/dest /root/'`
+
+### 🔍 Common Mistakes
+
+1. **Forgetting -a flag**: Files lose permissions and timestamps
+2. **Not using --dry-run**: Making changes without testing first
+3. **Wrong slash usage**: Copying directory into itself
+4. **Using --delete carelessly**: Accidentally deleting important files
+
+---
+
+## Best Practices
+
+1. **Always test first**
+   ```bash
+   rsync -avn source/ dest/  # Dry run
+   ```
+
+2. **Use archive mode for backups**
+   ```bash
+   rsync -av source/ dest/
+   ```
+
+3. **Show progress for large transfers**
+   ```bash
+   rsync -avP source/ dest/
+   ```
+
+4. **Create exclude file for regular backups**
+   ```bash
+   # Create exclude-list.txt
+   *.tmp
+   *.log
+   cache/
+   node_modules/
+   
+   # Use it
+   rsync -av --exclude-from=exclude-list.txt source/ dest/
+   ```
+
+5. **Log your syncs**
+   ```bash
+   rsync -av source/ dest/ --log-file=sync.log
+   ```
+
+---
+
+## Useful Option Combinations
+
+### Safe backup command
+```bash
+rsync -avhP --dry-run source/ destination/  # Test first
+rsync -avhP source/ destination/            # Execute
+```
+
+### Full system backup
+```bash
+rsync -aAXv --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*"} / /backup/
+```
+
+### Quick sync with compression
+```bash
+rsync -avzP source/ user@host:dest/
+```
+
+### Mirror with delete (careful!)
+```bash
+rsync -av --delete --dry-run source/ dest/  # Test
+rsync -av --delete source/ dest/             # Execute
+```
+
+---
+
+## Checking rsync Status
+
+### View what will be transferred
+```bash
+rsync -avn source/ dest/
+```
+
+### View detailed file list
+```bash
+rsync -avvn source/ dest/
+```
+
+### View statistics
+```bash
+rsync -av --stats source/ dest/
+```
+
+---
+
+## Troubleshooting
+
+### Permission denied
+```bash
+# Check SSH access first
+ssh user@host
+
+# Check destination permissions
+ls -la /destination/path/
+```
+
+### Connection timeout
+```bash
+# Test connection
+ping remote-host
+
+# Test SSH
+ssh -v user@host
+```
+
+### Slow transfer
+```bash
+# Use compression
+rsync -avz source/ dest/
+
+# Or disable compression for LAN
+rsync -av --no-compress source/ dest/
+```
+
+---
+
+## Resources
+
+- Man page: `man rsync`
+- Official docs: https://rsync.samba.org/
+- Test before production use
+- Keep backups before major syncs
+
+---
+
+**⚠️ Remember**: When in doubt, use `--dry-run` (`-n`) first!

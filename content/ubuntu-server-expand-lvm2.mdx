@@ -1,0 +1,123 @@
+---
+title: Ubuntu Server Expand LVM2
+date: '2025-04-09'
+tags: ['Linux', 'Ubuntu']
+draft: false
+summary: Ubuntu Server Expand LMV2.
+images: []
+---
+
+Below are step‑by‑step instructions you can follow to expand an LVM2 partition on Ubuntu Server. The process depends on whether you already have free space available in your volume group (VG) or if you first need to expand the underlying physical partition on your disk. Here’s a guide that covers both scenarios:
+
+---
+
+## 1. Check Your Current Disk and LVM Status
+
+- **Check disk usage and partition layout:**  
+  ```bash
+  df -h
+  sudo fdisk -l
+  ```
+
+- **Examine your VG and LV details:**  
+  ```bash
+  sudo vgdisplay
+  sudo lvdisplay
+  ```
+
+These commands let you see how much free space exists in your VG and the current sizes of your logical volumes (LVs).
+
+---
+
+## 2. If You Have Free Space in Your Volume Group
+
+Sometimes, especially with the default Ubuntu installer, extra space is allocated to the VG but not used by the LV. If **`vgdisplay`** shows free space (look for the “Free PE / Size” line), you can extend your LV directly:
+
+1. **Extend the Logical Volume (LV):**  
+   For example, to extend to use 100% of the free space:
+   ```bash
+   sudo lvextend -l +100%FREE /dev/mapper/ubuntu-vg-ubuntu-lv
+   ```
+   (Replace `/dev/mapper/ubuntu-vg-ubuntu-lv` with your actual LV path.)
+
+2. **Resize the Filesystem:**  
+   If you’re using an ext4 filesystem, run:
+   ```bash
+   sudo resize2fs /dev/mapper/ubuntu-vg-ubuntu-lv
+   ```
+   For other file systems (like XFS), use the appropriate command (e.g., `xfs_growfs`).
+
+3. **Verify the Changes:**  
+   ```bash
+   df -h
+   ```
+
+---
+
+## 3. If Your VG Doesn’t Have Free Space
+
+If **`vgdisplay`** shows 0 free space, you first need to expand the underlying physical partition.
+
+### A. Expand the Underlying Disk
+
+- **At the hypervisor level:**  
+  If you’re running a virtual machine, increase the size of the virtual disk in your VM settings (for example, through VMware, KVM, Hyper-V, etc.).
+
+- **Rescan the Disk in Ubuntu:**  
+  Force Ubuntu to see the new size (assuming your disk is `/dev/sda`):
+  ```bash
+  echo 1 | sudo tee /sys/class/block/sda/device/rescan
+  ```
+
+### B. Resize the Partition
+
+Optionally, you can use tools like `cfdisk`, `fdisk`, or `growpart` to adjust the partition that backs your PV (often something like `/dev/sda3`):
+
+1. **Launch your partition tool (using cfdisk as an example):**
+   ```bash
+   sudo cfdisk /dev/sda
+   ```
+2. **Select your LVM Partition:**  
+   Choose the partition (for example, `/dev/sda3`) and select the “Resize” option. Increase it to occupy the new free space.
+
+3. **Write Changes and Exit.**
+
+### C. Extend the Physical Volume (PV)
+
+Let LVM know about the increased partition size:
+```bash
+sudo pvresize /dev/sda3
+```
+Check that **`pvdisplay`** now shows increased size and that your VG has more free space.
+
+### D. Now Extend the Logical Volume and Filesystem
+
+Repeat the steps from Section 2:
+1. **Extend the LV:**
+   ```bash
+   sudo lvextend -l +100%FREE /dev/mapper/ubuntu-vg-ubuntu-lv
+   ```
+2. **Resize the Filesystem:**
+   ```bash
+   sudo resize2fs /dev/mapper/ubuntu-vg-ubuntu-lv
+   ```
+3. **Verify with df:**
+   ```bash
+   df -h
+   ```
+
+---
+
+## Summary
+
+- **Scenario 1:** If your VG already has free space, you only need to extend your LV and then resize your filesystem.
+- **Scenario 2:** If not, first expand the underlying disk (via your hypervisor), then adjust the partition (using tools like cfdisk/fdisk/growpart), run **`pvresize`**, and finally extend your LV and filesystem.
+
+These steps should expand your LVM2 content area so that your system can take advantage of the additional disk space.
+
+For further details and examples, you might review one or more of these guides:
+- [How to Extend the Default Ubuntu LVM Partition](https://packetpushers.net/blog/ubuntu-extend-your-default-lvm-space/) 
+- [Ask Ubuntu: How can I resize an active LVM partition?](https://askubuntu.com/questions/498709/how-can-i-resize-an-active-lvm-partition) 
+- [How to Increase Size of Disk Partition in Ubuntu](https://woshub.com/increase-partition-size-ubuntu/) 
+
+Feel free to ask if you need any further clarification on any of these steps!

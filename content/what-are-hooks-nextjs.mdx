@@ -1,0 +1,40 @@
+---
+title: What are hooks in NextJS
+date: '2024-10-24'
+tags: ['NextJS', 'code']
+draft: false
+summary: What are hooks and how to use them in NextJS.
+images: []
+---
+
+In React (and therefore, Next.js), a "hook" is a way to use state and other React features without writing a class component.
+Hooks allow you to "hook into" React state and lifecycle methods from functional components.
+
+Here are some built-in hooks in React:
+
+* `useState`: Creates a state variable and an update function.
+* `useEffect`: Allows you to run side effects (e.g., making API calls) after rendering.
+* `useContext`: Provides access to context objects, like a theme or a user object.
+* `useReducer`: Similar to `useState`, but with more features for managing complex state.
+* `useCallback`: Memoizes a function so that it's not recreated on every render.
+* `useMemo`: Memoizes a value so that it's not recalculated on every render.
+
+To use these hooks, you can simply import the `React` library and then use them in your functional component:
+```jsx
+import React, { useState } from 'react';
+
+function MyComponent() {
+  const [count, setCount] = useState(0);
+
+  return (
+    <div>
+      <p>Count: {count}</p>
+      <button onClick={() => setCount(count + 1)}>Increment</button>
+    </div>
+  );
+}
+```
+In this example, we're using the `useState` hook to create a state variable `count` and an update function `setCount`. We can
+then use these in our component.
+
+These built-in hooks are part of React's core functionality, so you don't need to install any additional libraries to use them.

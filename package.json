@@ -1,0 +1,43 @@
+{
+  "name": "robin-personal-blog",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Robin te Hofstee's personal blog - Technology, React, NextJS, and Web Development",
+  "author": "Robin te Hofstee",
+  "scripts": {
+    "dev": "PORT=3011 next dev",
+    "build": "next build",
+    "build:content": "contentlayer2 build",
+    "start": "PORT=3010 next start",
+    "restart": "npm run build && npm run start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "artalk": "^2.9.1",
+    "contentlayer2": "^0.5.8",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.26.2",
+    "lucide-react": "^0.562.0",
+    "next": "^16.1.2",
+    "next-contentlayer2": "^0.5.8",
+    "next-share": "^0.27.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "rehype-pretty-code": "^0.14.1",
+    "remark-gfm": "^4.0.1",
+    "shiki": "^3.21.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@types/node": "^25",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "autoprefixer": "^10.4.23",
+    "eslint": "^9",
+    "eslint-config-next": "^16.1.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5"
+  }
+}

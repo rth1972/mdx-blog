@@ -1,0 +1,529 @@
+---
+
+title: DMenu tutorial
+
+date: '2025-10-07'
+
+tags: ["Suckless", "dmenu", "Dynamic Menu"]
+
+draft: false
+
+summary: Learn what is dmenu, how to use dmenu, dmenu is a dynamic menu for X.
+
+images: []
+
+---
+
+# dmenu Tutorial: Complete Guide
+
+## What is dmenu?
+
+`dmenu` is a dynamic menu for X, originally designed for dwm. It's a fast, lightweight, and keyboard-driven application launcher and general-purpose menu system. dmenu reads a list of items from stdin and displays them as a menu, allowing you to select one using keyboard input.
+
+### Key Features
+- **Extremely fast and lightweight** (less than 2000 lines of code)
+- **Keyboard-driven** for efficient workflow
+- **Flexible input** - accepts any list via stdin
+- **Fuzzy matching** for quick filtering
+- **Highly customizable** appearance and behavior
+- **Scriptable** - can be used in shell scripts for interactive menus
+
+---
+
+## Installation
+
+### From Source (Suckless Way)
+```bash
+# Clone the repository
+git clone https://git.suckless.org/dmenu
+
+# Navigate to directory
+cd dmenu
+
+# Edit config.h to customize (optional)
+vim config.h
+
+# Compile and install
+sudo make clean install
+```
+
+### From Package Manager
+```bash
+# Debian/Ubuntu
+sudo apt install dmenu
+
+# Arch Linux
+sudo pacman -S dmenu
+
+# Fedora
+sudo dnf install dmenu
+```
+
+---
+
+## Basic Usage
+
+### 1. Launch dmenu as application launcher
+```bash
+dmenu_run
+```
+This shows all executables in your `$PATH` and launches the selected one.
+
+### 2. Basic dmenu syntax
+```bash
+echo -e "Option 1\nOption 2\nOption 3" | dmenu
+```
+Displays a menu with three options and returns the selected one.
+
+### 3. Use dmenu output in a script
+```bash
+choice=$(echo -e "Yes\nNo" | dmenu -p "Continue?")
+echo "You selected: $choice"
+```
+
+---
+
+## Command-Line Options
+
+| Option | Description |
+|--------|-------------|
+| `-b` | Display at bottom of screen |
+| `-f` | Fast mode (grab keyboard before reading stdin) |
+| `-i` | Case-insensitive matching |
+| `-l <lines>` | Display as vertical list with specified lines |
+| `-p <prompt>` | Set prompt text |
+| `-fn <font>` | Set font |
+| `-nb <color>` | Normal background color |
+| `-nf <color>` | Normal foreground color |
+| `-sb <color>` | Selected background color |
+| `-sf <color>` | Selected foreground color |
+| `-w <windowid>` | Embed into window |
+
+### Example with options
+```bash
+echo -e "Red\nGreen\nBlue" | dmenu -i -p "Choose color:" -l 10
+```
+
+---
+
+## Keyboard Controls
+
+While dmenu is open:
+
+| Key | Action |
+|-----|--------|
+| `Type text` | Filter items |
+| `Enter` | Select highlighted item |
+| `Ctrl+j` or `Down` | Move to next item |
+| `Ctrl+k` or `Up` | Move to previous item |
+| `Ctrl+n` | Move to next item (alternative) |
+| `Ctrl+p` | Move to previous item (alternative) |
+| `Tab` | Complete selection |
+| `Shift+Tab` | Complete selection (reverse) |
+| `Ctrl+y` | Paste from primary selection |
+| `Ctrl+Y` | Paste from clipboard |
+| `Escape` | Cancel/exit |
+| `Ctrl+c` | Cancel/exit |
+
+---
+
+## Creating dmenu Scripts
+
+### Example 1: Simple Yes/No Prompt
+```bash
+#!/bin/bash
+
+answer=$(echo -e "Yes\nNo" | dmenu -p "Are you sure?")
+
+if [ "$answer" = "Yes" ]; then
+    echo "Confirmed!"
+else
+    echo "Cancelled"
+fi
+```
+
+### Example 2: Application Launcher Menu
+```bash
+#!/bin/bash
+
+choice=$(echo -e "Firefox\nTerminal\nFile Manager\nText Editor" | dmenu -i -p "Launch:")
+
+case $choice in
+    "Firefox")
+        firefox &
+        ;;
+    "Terminal")
+        kitty &
+        ;;
+    "File Manager")
+        pcmanfm &
+        ;;
+    "Text Editor")
+        gedit &
+        ;;
+esac
+```
+
+### Example 3: Power Menu
+```bash
+#!/bin/bash
+
+options="Shutdown\nReboot\nLogout\nSuspend\nLock"
+
+chosen=$(echo -e "$options" | dmenu -i -p "Power Menu:")
+
+case $chosen in
+    "Shutdown")
+        systemctl poweroff
+        ;;
+    "Reboot")
+        systemctl reboot
+        ;;
+    "Logout")
+        # For dwm
+        killall dwm
+        ;;
+    "Suspend")
+        systemctl suspend
+        ;;
+    "Lock")
+        slock
+        ;;
+esac
+```
+
+### Example 4: WiFi Network Selector
+```bash
+#!/bin/bash
+
+# Get list of WiFi networks
+networks=$(nmcli -t -f SSID dev wifi list | sort -u)
+
+# Show in dmenu
+selected=$(echo "$networks" | dmenu -i -l 10 -p "Select WiFi:")
+
+# Connect to selected network
+if [ -n "$selected" ]; then
+    nmcli device wifi connect "$selected"
+fi
+```
+
+### Example 5: Bookmark Manager
+```bash
+#!/bin/bash
+
+# File containing bookmarks (URL | Description format)
+bookmarks="$HOME/.config/bookmarks.txt"
+
+# Read bookmarks and select one
+selection=$(cat "$bookmarks" | dmenu -i -l 20 -p "Bookmark:")
+
+# Extract URL (before the |)
+url=$(echo "$selection" | cut -d'|' -f1 | xargs)
+
+# Open in browser
+if [ -n "$url" ]; then
+    firefox "$url" &
+fi
+```
+
+Bookmarks file format (`~/.config/bookmarks.txt`):
+```
+https://github.com | GitHub
+https://reddit.com | Reddit
+https://youtube.com | YouTube
+```
+
+### Example 6: File Browser
+```bash
+#!/bin/bash
+
+# Start in home directory
+dir="$HOME"
+
+while true; do
+    # List directories and files
+    choice=$(ls -1p "$dir" | dmenu -i -l 20 -p "Browse: $dir")
+    
+    # Exit if cancelled
+    [ -z "$choice" ] && exit
+    
+    # Build full path
+    fullpath="$dir/$choice"
+    
+    # If directory, cd into it
+    if [ -d "$fullpath" ]; then
+        dir="$fullpath"
+    # If file, open it
+    elif [ -f "$fullpath" ]; then
+        xdg-open "$fullpath"
+        exit
+    fi
+done
+```
+
+### Example 7: Clipboard History (with clipmenu)
+```bash
+#!/bin/bash
+
+# Requires clipmenu package
+# This is a pre-built solution that works with dmenu
+
+# Store clipboard history
+clipmenud &
+
+# Show clipboard history
+clipmenu
+```
+
+### Example 8: Quick Notes
+```bash
+#!/bin/bash
+
+notes_dir="$HOME/notes"
+mkdir -p "$notes_dir"
+
+action=$(echo -e "New Note\nView Note\nDelete Note" | dmenu -p "Notes:")
+
+case $action in
+    "New Note")
+        note_name=$(echo "" | dmenu -p "Note name:")
+        [ -n "$note_name" ] && "$EDITOR" "$notes_dir/$note_name.txt"
+        ;;
+    "View Note")
+        note=$(ls -1 "$notes_dir" | dmenu -l 20 -p "Select note:")
+        [ -n "$note" ] && "$EDITOR" "$notes_dir/$note"
+        ;;
+    "Delete Note")
+        note=$(ls -1 "$notes_dir" | dmenu -l 20 -p "Delete note:")
+        [ -n "$note" ] && rm "$notes_dir/$note"
+        ;;
+esac
+```
+
+### Example 9: Man Page Viewer
+```bash
+#!/bin/bash
+
+# Get all man pages
+man_page=$(man -k . | awk '{print $1}' | dmenu -i -l 20 -p "Man page:")
+
+# Open selected man page in terminal
+if [ -n "$man_page" ]; then
+    kitty -e man "$man_page"
+fi
+```
+
+### Example 10: Color Picker
+```bash
+#!/bin/bash
+
+color=$(echo -e "#FF0000 Red\n#00FF00 Green\n#0000FF Blue\n#FFFF00 Yellow\n#FF00FF Magenta\n#00FFFF Cyan\n#000000 Black\n#FFFFFF White" | dmenu -i -l 10 -p "Pick color:")
+
+# Copy color code to clipboard
+color_code=$(echo "$color" | awk '{print $1}')
+echo -n "$color_code" | xclip -selection clipboard
+
+notify-send "Color copied: $color_code"
+```
+
+---
+
+## Integration with Window Managers
+
+### dwm Integration
+dmenu is designed for dwm. In dwm's `config.h`:
+
+```c
+static const char *dmenucmd[] = { "dmenu_run", "-m", dmenumon, "-fn", dmenufont, "-nb", col_gray1, "-nf", col_gray3, "-sb", col_cyan, "-sf", col_gray4, NULL };
+
+{ MODKEY, XK_p, spawn, {.v = dmenucmd } },
+```
+
+### i3 Integration
+Add to `~/.config/i3/config`:
+
+```bash
+bindsym $mod+d exec dmenu_run
+bindsym $mod+Shift+d exec /path/to/your/dmenu-script.sh
+```
+
+### General Keybinding (with sxhkd)
+```bash
+# In ~/.config/sxhkd/sxhkdrc
+super + d
+    dmenu_run
+
+super + shift + d
+    ~/scripts/power-menu.sh
+```
+
+---
+
+## Advanced Tips
+
+### 1. Custom dmenu_run Wrapper
+Create `~/bin/mydmenu`:
+```bash
+#!/bin/bash
+
+dmenu_run -i -fn "JetBrains Mono-12" -nb "#282828" -nf "#ebdbb2" -sb "#458588" -sf "#ebdbb2" -p "Run:"
+```
+
+### 2. Use with xargs for Batch Operations
+```bash
+# Select multiple files and delete them
+ls | dmenu -l 20 | xargs rm
+```
+
+### 3. Dynamic Font Sizing
+```bash
+#!/bin/bash
+
+# Get screen width
+width=$(xrandr | grep '*' | awk '{print $1}' | cut -d'x' -f1 | head -1)
+
+# Adjust font based on screen
+if [ "$width" -gt 1920 ]; then
+    font_size=14
+else
+    font_size=10
+fi
+
+dmenu_run -fn "monospace-$font_size"
+```
+
+### 4. Colorize Output Based on Selection
+```bash
+#!/bin/bash
+
+choice=$(echo -e "Success\nWarning\nError" | dmenu -p "Type:")
+
+case $choice in
+    "Success")
+        notify-send -u normal "✓ Success"
+        ;;
+    "Warning")
+        notify-send -u normal "⚠ Warning"
+        ;;
+    "Error")
+        notify-send -u critical "✗ Error"
+        ;;
+esac
+```
+
+---
+
+## Customization
+
+### Edit config.h Before Compiling
+```c
+/* appearance */
+static const char *fonts[] = { "monospace:size=10" };
+static const char *prompt = NULL;
+static const char *colors[SchemeLast][2] = {
+    /*     fg         bg       */
+    [SchemeNorm] = { "#bbbbbb", "#222222" },
+    [SchemeSel]  = { "#eeeeee", "#005577" },
+    [SchemeOut]  = { "#000000", "#00ffff" },
+};
+
+/* -l option; if nonzero, dmenu uses vertical list with given number of lines */
+static unsigned int lines = 0;
+
+/* -b option; if 1, dmenu appears at bottom */
+static int topbar = 1;
+```
+
+After editing, recompile:
+```bash
+sudo make clean install
+```
+
+---
+
+## Common Use Cases
+
+### 1. Quick Launcher
+```bash
+dmenu_run -i -p "Run:"
+```
+
+### 2. Window Switcher (with wmctrl)
+```bash
+wmctrl -l | dmenu -l 10 | awk '{print $1}' | xargs wmctrl -ia
+```
+
+### 3. Process Killer
+```bash
+ps aux | dmenu -l 20 | awk '{print $2}' | xargs kill
+```
+
+### 4. SSH Connection Menu
+```bash
+host=$(cat ~/.ssh/config | grep "^Host " | cut -d' ' -f2 | dmenu -p "SSH to:")
+[ -n "$host" ] && kitty -e ssh "$host"
+```
+
+### 5. Screenshot Tool
+```bash
+choice=$(echo -e "Fullscreen\nSelect Area\nCurrent Window" | dmenu -p "Screenshot:")
+
+case $choice in
+    "Fullscreen")
+        scrot ~/Pictures/screenshot.png
+        ;;
+    "Select Area")
+        scrot -s ~/Pictures/screenshot.png
+        ;;
+    "Current Window")
+        scrot -u ~/Pictures/screenshot.png
+        ;;
+esac
+```
+
+---
+
+## Troubleshooting
+
+### dmenu not showing
+- Check if X server is running: `echo $DISPLAY`
+- Try running with verbose errors: `dmenu 2>&1`
+
+### Wrong colors
+- Check your terminal color settings
+- Verify color codes in config.h or command line
+
+### Items not appearing
+- Check if stdin is properly formatted
+- Try: `echo -e "test1\ntest2" | dmenu`
+
+### Font not found
+- Install the font specified in config.h
+- Or change to an installed font: `fc-list` to see available fonts
+
+---
+
+## Best Practices
+
+1. **Keep scripts simple** - dmenu is meant to be lightweight
+2. **Use `-i` flag** for case-insensitive matching
+3. **Test with echo** before using in scripts
+4. **Add error handling** in scripts
+5. **Use meaningful prompts** with `-p` flag
+6. **Consider vertical layout** (`-l`) for long lists
+7. **Make scripts executable**: `chmod +x script.sh`
+8. **Store scripts** in `~/bin` or `~/.local/bin`
+
+---
+
+## Resources
+
+- Official site: https://tools.suckless.org/dmenu
+- Source code: https://git.suckless.org/dmenu
+- Man page: `man dmenu`
+- dwm website: https://dwm.suckless.org
+
+---
+
+**Pro Tip**: dmenu is the Swiss Army knife of menus. Anything that outputs text can be turned into an interactive menu with dmenu!

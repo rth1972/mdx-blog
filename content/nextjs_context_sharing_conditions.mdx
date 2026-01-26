@@ -1,0 +1,616 @@
+---
+title: Building Your First React Custom Hook
+date: '2026-01-13'
+tags: ['React', 'JavaScript', 'TypeScript', 'Web-Development']
+draft: false
+summary: Learn how to create reusable custom hooks in React to simplify your code and share logic across components.
+---
+
+# Building Your First React Custom Hook
+
+## Introduction
+
+Custom hooks are one of React's most powerful features, allowing you to extract component logic into reusable functions. In this tutorial, we'll learn how to create custom hooks that simplify your code and share logic across components.
+
+## What Are Custom Hooks?
+
+Custom hooks are JavaScript functions that:
+- Start with the word "use" (e.g., `useLocalStorage`, `useFetch`)
+- Can call other React hooks
+- Allow you to reuse stateful logic between components
+- Keep your components clean and focused
+
+### When to Create a Custom Hook
+
+✅ **Create a custom hook when:**
+- You have logic that's duplicated across multiple components
+- Component logic is getting complex and hard to read
+- You want to separate concerns (data fetching, form handling, etc.)
+- You need to share stateful logic between components
+
+❌ **Don't create a custom hook when:**
+- The logic is only used in one place
+- Simple prop passing would work better
+- You're just wrapping a single line of code
+
+## Real-World Example: Building Custom Hooks
+
+Let's build practical custom hooks step by step.
+
+### Example 1: useLocalStorage Hook
+
+This hook syncs state with localStorage, perfect for persisting user preferences.
+
+```typescript
+import { useState, useEffect } from 'react';
+
+function useLocalStorage<T>(key: string, initialValue: T) {
+  // Get initial value from localStorage or use default
+  const [storedValue, setStoredValue] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      console.error(`Error reading localStorage key "${key}":`, error);
+      return initialValue;
+    }
+  });
+
+  // Update localStorage when state changes
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(storedValue));
+    } catch (error) {
+      console.error(`Error setting localStorage key "${key}":`, error);
+    }
+  }, [key, storedValue]);
+
+  return [storedValue, setStoredValue] as const;
+}
+
+export default useLocalStorage;
+```
+
+**Usage:**
+```typescript
+function App() {
+  const [theme, setTheme] = useLocalStorage('theme', 'light');
+  const [name, setName] = useLocalStorage('username', '');
+
+  return (
+    <div>
+      <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+        Current theme: {theme}
+      </button>
+      <input 
+        value={name} 
+        onChange={(e) => setName(e.target.value)} 
+        placeholder="Your name"
+      />
+    </div>
+  );
+}
+```
+
+### Example 2: useFetch Hook
+
+Simplify API calls with loading and error states.
+
+```typescript
+import { useState, useEffect } from 'react';
+
+interface UseFetchResult<T> {
+  data: T | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+function useFetch<T>(url: string): UseFetchResult<T> {
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [refetchIndex, setRefetchIndex] = useState(0);
+
+  const refetch = () => setRefetchIndex(prev => prev + 1);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const json = await response.json();
+        setData(json);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [url, refetchIndex]);
+
+  return { data, loading, error, refetch };
+}
+
+export default useFetch;
+```
+
+**Usage:**
+```typescript
+function UserProfile({ userId }: { userId: string }) {
+  const { data, loading, error, refetch } = useFetch<User>(
+    `https://api.example.com/users/${userId}`
+  );
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+  if (!data) return null;
+
+  return (
+    <div>
+      <h1>{data.name}</h1>
+      <p>{data.email}</p>
+      <button onClick={refetch}>Refresh</button>
+    </div>
+  );
+}
+```
+
+### Example 3: useToggle Hook
+
+Simple boolean state toggle with helpful utilities.
+
+```typescript
+import { useState, useCallback } from 'react';
+
+function useToggle(initialValue: boolean = false) {
+  const [value, setValue] = useState(initialValue);
+
+  const toggle = useCallback(() => setValue(v => !v), []);
+  const setTrue = useCallback(() => setValue(true), []);
+  const setFalse = useCallback(() => setValue(false), []);
+
+  return [value, { toggle, setTrue, setFalse }] as const;
+}
+
+export default useToggle;
+```
+
+**Usage:**
+```typescript
+function Modal() {
+  const [isOpen, { toggle, setTrue, setFalse }] = useToggle(false);
+
+  return (
+    <div>
+      <button onClick={setTrue}>Open Modal</button>
+      {isOpen && (
+        <div className="modal">
+          <h2>Modal Content</h2>
+          <button onClick={setFalse}>Close</button>
+          <button onClick={toggle}>Toggle</button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+### Example 4: useDebounce Hook
+
+Delay updates until user stops typing.
+
+```typescript
+import { useState, useEffect } from 'react';
+
+function useDebounce<T>(value: T, delay: number = 500): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+export default useDebounce;
+```
+
+**Usage:**
+```typescript
+function SearchBar() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    if (debouncedSearch) {
+      // API call only happens 500ms after user stops typing
+      fetch(`/api/search?q=${debouncedSearch}`)
+        .then(res => res.json())
+        .then(data => console.log(data));
+    }
+  }, [debouncedSearch]);
+
+  return (
+    <input
+      type="text"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      placeholder="Search..."
+    />
+  );
+}
+```
+
+### Example 5: useWindowSize Hook
+
+Track window dimensions for responsive design.
+
+```typescript
+import { useState, useEffect } from 'react';
+
+interface WindowSize {
+  width: number;
+  height: number;
+}
+
+function useWindowSize(): WindowSize {
+  const [windowSize, setWindowSize] = useState<WindowSize>({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener('resize', handleResize);
+    
+    // Call handler right away so state gets updated with initial window size
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return windowSize;
+}
+
+export default useWindowSize;
+```
+
+**Usage:**
+```typescript
+function ResponsiveComponent() {
+  const { width, height } = useWindowSize();
+  const isMobile = width < 768;
+
+  return (
+    <div>
+      <p>Window size: {width} x {height}</p>
+      {isMobile ? <MobileNav /> : <DesktopNav />}
+    </div>
+  );
+}
+```
+
+### Example 6: useForm Hook
+
+Simplify form handling with validation.
+
+```typescript
+import { useState, ChangeEvent, FormEvent } from 'react';
+
+interface UseFormOptions<T> {
+  initialValues: T;
+  onSubmit: (values: T) => void;
+  validate?: (values: T) => Partial<Record<keyof T, string>>;
+}
+
+function useForm<T extends Record<string, any>>({
+  initialValues,
+  onSubmit,
+  validate,
+}: UseFormOptions<T>) {
+  const [values, setValues] = useState<T>(initialValues);
+  const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({});
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValues(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleBlur = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setTouched(prev => ({ ...prev, [name]: true }));
+    
+    if (validate) {
+      const validationErrors = validate(values);
+      setErrors(validationErrors);
+    }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    
+    if (validate) {
+      const validationErrors = validate(values);
+      setErrors(validationErrors);
+      
+      if (Object.keys(validationErrors).length === 0) {
+        onSubmit(values);
+      }
+    } else {
+      onSubmit(values);
+    }
+  };
+
+  const reset = () => {
+    setValues(initialValues);
+    setErrors({});
+    setTouched({});
+  };
+
+  return {
+    values,
+    errors,
+    touched,
+    handleChange,
+    handleBlur,
+    handleSubmit,
+    reset,
+  };
+}
+
+export default useForm;
+```
+
+**Usage:**
+```typescript
+interface LoginForm {
+  email: string;
+  password: string;
+}
+
+function LoginPage() {
+  const { values, errors, touched, handleChange, handleBlur, handleSubmit } = 
+    useForm<LoginForm>({
+      initialValues: { email: '', password: '' },
+      onSubmit: (values) => {
+        console.log('Submitted:', values);
+        // API call here
+      },
+      validate: (values) => {
+        const errors: Partial<Record<keyof LoginForm, string>> = {};
+        
+        if (!values.email) {
+          errors.email = 'Email is required';
+        } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+          errors.email = 'Email is invalid';
+        }
+        
+        if (!values.password) {
+          errors.password = 'Password is required';
+        } else if (values.password.length < 6) {
+          errors.password = 'Password must be at least 6 characters';
+        }
+        
+        return errors;
+      },
+    });
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div>
+        <input
+          name="email"
+          value={values.email}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Email"
+        />
+        {touched.email && errors.email && <span>{errors.email}</span>}
+      </div>
+      
+      <div>
+        <input
+          type="password"
+          name="password"
+          value={values.password}
+          onChange={handleChange}
+          onBlur={handleBlur}
+          placeholder="Password"
+        />
+        {touched.password && errors.password && <span>{errors.password}</span>}
+      </div>
+      
+      <button type="submit">Login</button>
+    </form>
+  );
+}
+```
+
+## Best Practices for Custom Hooks
+
+### 1. **Always Start with "use"**
+```typescript
+// ✅ Good
+function useCounter() { }
+
+// ❌ Bad
+function counter() { }
+```
+
+### 2. **Return Arrays for Simple Hooks**
+```typescript
+// ✅ Good - similar to useState
+function useToggle() {
+  return [value, toggle] as const;
+}
+```
+
+### 3. **Return Objects for Complex Hooks**
+```typescript
+// ✅ Good - clear what each value is
+function useFetch() {
+  return { data, loading, error, refetch };
+}
+```
+
+### 4. **Handle Cleanup Properly**
+```typescript
+function useEventListener(event: string, handler: Function) {
+  useEffect(() => {
+    window.addEventListener(event, handler);
+    
+    // Always cleanup!
+    return () => window.removeEventListener(event, handler);
+  }, [event, handler]);
+}
+```
+
+### 5. **Use TypeScript for Better DX**
+```typescript
+// Generics make hooks flexible and type-safe
+function useLocalStorage<T>(key: string, initialValue: T) {
+  // TypeScript knows the exact type!
+}
+```
+
+### 6. **Memoize Callbacks**
+```typescript
+function useToggle() {
+  // useCallback prevents unnecessary re-renders
+  const toggle = useCallback(() => setValue(v => !v), []);
+  return [value, toggle];
+}
+```
+
+## Common Pitfalls to Avoid
+
+### ❌ Pitfall 1: Calling Hooks Conditionally
+```typescript
+// ❌ Bad
+function MyComponent({ shouldFetch }) {
+  if (shouldFetch) {
+    const data = useFetch('/api'); // Error!
+  }
+}
+
+// ✅ Good
+function MyComponent({ shouldFetch }) {
+  const data = useFetch(shouldFetch ? '/api' : null);
+}
+```
+
+### ❌ Pitfall 2: Forgetting Dependencies
+```typescript
+// ❌ Bad
+useEffect(() => {
+  console.log(count);
+}, []); // Missing count dependency!
+
+// ✅ Good
+useEffect(() => {
+  console.log(count);
+}, [count]);
+```
+
+### ❌ Pitfall 3: Not Handling Loading States
+```typescript
+// ❌ Bad
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  // No loading or error states!
+}
+
+// ✅ Good
+function useFetch(url) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+}
+```
+
+## Testing Custom Hooks
+
+Use `@testing-library/react-hooks`:
+
+```typescript
+import { renderHook, act } from '@testing-library/react-hooks';
+import useCounter from './useCounter';
+
+test('should increment counter', () => {
+  const { result } = renderHook(() => useCounter());
+  
+  act(() => {
+    result.current.increment();
+  });
+  
+  expect(result.current.count).toBe(1);
+});
+```
+
+## Organizing Custom Hooks
+
+```
+src/
+├── hooks/
+│   ├── index.ts          # Export all hooks
+│   ├── useLocalStorage.ts
+│   ├── useFetch.ts
+│   ├── useToggle.ts
+│   └── useDebounce.ts
+└── components/
+    └── MyComponent.tsx
+```
+
+**Export pattern:**
+```typescript
+// hooks/index.ts
+export { default as useLocalStorage } from './useLocalStorage';
+export { default as useFetch } from './useFetch';
+export { default as useToggle } from './useToggle';
+
+// Usage
+import { useLocalStorage, useFetch } from '@/hooks';
+```
+
+## Conclusion
+
+Custom hooks are powerful tools that help you:
+- ✅ Write cleaner, more maintainable code
+- ✅ Share logic across components
+- ✅ Separate concerns
+- ✅ Create reusable abstractions
+
+Start small with simple hooks like `useToggle`, then graduate to more complex ones like `useFetch` and `useForm`. Your future self (and teammates) will thank you!
+
+## Resources
+
+- [React Hooks Documentation](https://react.dev/reference/react)
+- [useHooks.com](https://usehooks.com/) - Collection of custom hooks
+- [React Hook Form](https://react-hook-form.com/) - Advanced form hooks
+
+---
+
+**Found this helpful?** Share it with fellow React developers!
+
+**Have questions?** Drop them in the comments below!

@@ -1,0 +1,285 @@
+---
+title: Building a Website Analytics System with Python Sockets
+date: '2025-05-17'
+tags: ['Python', 'code']
+draft: false
+summary: Building a Website Analytics System with Python Sockets.
+---
+
+Here's a **full tutorial** explaining every part of the **web analytics server in python**.
+
+---
+
+# **📊 Web Analytics Server in Python**
+
+This tutorial walks through the **complete Python code** for a **web analytics system** using **sockets**. The server **logs visitor activity** and **retrieves analytics data**.
+
+---
+
+## **📌 Full Code**
+```python
+import json
+import socket
+import threading
+from datetime import datetime
+
+PORT = 5050
+SERVER = "localhost"
+ADDR = (SERVER, PORT)
+FORMAT = "utf-8"
+LOG_FILE = "analytics.json"
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
+server.listen()
+
+def handle_client(conn, addr):
+    print(f"[NEW CONNECTION] {addr} Connected")
+    request = conn.recv(1024).decode(FORMAT)
+    
+    if not request:
+        conn.close()
+        return
+    
+    if request.startswith("POST /send_message"):
+        body = request.split("\r\n\r\n")[-1]
+        log_visit(addr, body)
+        response = ("HTTP/1.1 200 OK\r\n"
+                    "Access-Control-Allow-Origin: *\r\n"
+                    "Content-Type: text/plain\r\n"
+                    "Connection: close\r\n\r\n"
+                    "Message received successfully!")
+        conn.sendall(response.encode(FORMAT))
+    
+    elif request.startswith("GET /get_analytics"):
+        conn.sendall(get_analytics().encode(FORMAT))
+    
+    conn.close()
+
+def log_visit(client_addr, page):
+    data = {"ip": client_addr[0], "page": page, "timestamp": str(datetime.now())}
+    
+    try:
+        with open(LOG_FILE, "r") as file:
+            logs = json.load(file)
+    except FileNotFoundError:
+        logs = []
+    
+    logs.append(data)
+    
+    with open(LOG_FILE, "w") as file:
+        json.dump(logs, file, indent=4)
+
+def get_analytics():
+    try:
+        with open(LOG_FILE, "r") as file:
+            data = json.load(file)
+        return ("HTTP/1.1 200 OK\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Content-Type: application/json\r\n"
+                "Connection: close\r\n\r\n"
+                + json.dumps(data))
+    except FileNotFoundError:
+        return ("HTTP/1.1 404 Not Found\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Content-Type: text/plain\r\n"
+                "Connection: close\r\n\r\n"
+                "No analytics data found.")
+
+def start():
+    print("[SERVER STARTED] Tracking analytics...")
+    while True:
+        conn, addr = server.accept()
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
+        thread.start()
+
+start()
+```
+
+---
+
+## **📖 Explanation of the Code**
+
+### 🔹 **1. Importing Libraries**
+```python
+import json
+import socket
+import threading
+from datetime import datetime
+```
+- **json** → Handles visitor data storage.
+- **socket** → Creates a TCP server to receive analytics data.
+- **threading** → Runs multiple connections simultaneously.
+- **datetime** → Logs timestamps for visits.
+
+---
+
+### 🔹 **2. Setting Up Server Variables**
+```python
+PORT = 5050
+SERVER = "localhost"
+ADDR = (SERVER, PORT)
+FORMAT = "utf-8"
+LOG_FILE = "analytics.json"
+```
+- Defines the **server port** (`5050`).
+- Uses **localhost** (`127.0.0.1`).
+- Specifies the **file** where analytics logs are saved.
+
+---
+
+### 🔹 **3. Creating the Server**
+```python
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server.bind(ADDR)
+server.listen()
+```
+- Creates a **TCP socket** for network communication.
+- **Binds** the socket to the IP and port.
+- Enables the **server to listen** for incoming connections.
+
+---
+
+### 🔹 **4. Handling Client Requests**
+```python
+def handle_client(conn, addr):
+    print(f"[NEW CONNECTION] {addr} Connected")
+    request = conn.recv(1024).decode(FORMAT)
+    
+    if not request:
+        conn.close()
+        return
+```
+- Accepts **incoming client connections**.
+- Reads the **request data** from the client.
+- Closes the connection if no data is received.
+
+---
+
+### 🔹 **5. Processing Incoming HTTP Requests**
+```python
+if request.startswith("POST /send_message"):
+    body = request.split("\r\n\r\n")[-1]
+    log_visit(addr, body)
+    response = ("HTTP/1.1 200 OK\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Content-Type: text/plain\r\n"
+                "Connection: close\r\n\r\n"
+                "Message received successfully!")
+    conn.sendall(response.encode(FORMAT))
+```
+- **Handles POST requests** (`send_message`).
+- **Extracts message body**.
+- Calls **log_visit()** to store user activity.
+- Sends an **HTTP response** confirming success.
+
+---
+
+### 🔹 **6. Retrieving Analytics Logs**
+```python
+elif request.startswith("GET /get_analytics"):
+    conn.sendall(get_analytics().encode(FORMAT))
+```
+- Responds to **GET requests** (`get_analytics`).
+- Calls **get_analytics()** to fetch logs.
+
+---
+
+### 🔹 **7. Logging Visitor Activity**
+```python
+def log_visit(client_addr, page):
+    data = {"ip": client_addr[0], "page": page, "timestamp": str(datetime.now())}
+    
+    try:
+        with open(LOG_FILE, "r") as file:
+            logs = json.load(file)
+    except FileNotFoundError:
+        logs = []
+    
+    logs.append(data)
+    
+    with open(LOG_FILE, "w") as file:
+        json.dump(logs, file, indent=4)
+```
+- **Creates** a JSON object containing:
+  - **Visitor IP** (`client_addr[0]`)
+  - **Page visited** (`page`)
+  - **Timestamp** (`datetime.now()`)
+- **Writes logs** into a JSON file.
+
+---
+
+### 🔹 **8. Fetching Analytics Data**
+```python
+def get_analytics():
+    try:
+        with open(LOG_FILE, "r") as file:
+            data = json.load(file)
+        return ("HTTP/1.1 200 OK\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Content-Type: application/json\r\n"
+                "Connection: close\r\n\r\n"
+                + json.dumps(data))
+    except FileNotFoundError:
+        return ("HTTP/1.1 404 Not Found\r\n"
+                "Access-Control-Allow-Origin: *\r\n"
+                "Content-Type: text/plain\r\n"
+                "Connection: close\r\n\r\n"
+                "No analytics data found.")
+```
+- Reads **visitor logs from JSON**.
+- Returns data in **HTTP response format**.
+- Handles cases where logs **don’t exist**.
+
+---
+
+### 🔹 **9. Running the Server**
+```python
+def start():
+    print("[SERVER STARTED] Tracking analytics...")
+    while True:
+        conn, addr = server.accept()
+        thread = threading.Thread(target=handle_client, args=(conn, addr))
+        thread.start()
+```
+- Prints **server startup message**.
+- Continuously **accepts connections**.
+- Runs each connection in **a separate thread**.
+
+---
+
+### 🔹 **10. Starting the Server**
+```python
+start()
+```
+- **Launches the server** to listen for requests.
+
+---
+
+## 🚀 **How to Use**
+### ✅ **Run the Server**
+```bash
+python server.py
+```
+### ✅ **Send Analytics Data**
+Use JavaScript:
+```javascript
+fetch("http://localhost:5050/send_message", {
+    method: "POST",
+    body: "User visited homepage!"
+});
+```
+### ✅ **Retrieve Analytics**
+Visit:
+```
+http://localhost:5050/get_analytics
+```
+
+---
+
+## 🔥 **Next Steps**
+✅ **Add Real-Time Analytics** with WebSockets  
+✅ **Use a Database (SQLite/PostgreSQL)** for Storage  
+✅ **Visualize Analytics** on a Website  
+
+Let me know if you want **real-time updates** or **frontend visualization**! 🚀

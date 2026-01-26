@@ -1,0 +1,50 @@
+---
+title: Create react app
+date: '2024-05-23'
+tags: ['react', 'code']
+draft: false
+summary: How to create a simple react app.
+---
+
+## How to Create a React App
+To use Create React App, we first need to open our terminal or command line on our computer.
+
+To create a new React project, we can use the tool npx, provided you have an npm version of at least 5.2.
+
+npx gives us the ability to use the create-react-app package without having to first install it on our computer, which is very convenient.
+
+Using npx also ensures that we are using latest version of Create React App to create our project:
+
+```python:Terminal
+npx create-react-app my-react-app
+```
+
+Once we run this command, a folder named "my-react-app" will be created where we specified on our computer and all of the packages it requires will be automatically installed.
+
+> **_NOTE:_**  Creating a new React app with create-react-app will usually take 2-3 minutes, sometimes more.
+
+Create React App also gives us some templates to use for specific types of React projects.
+
+For example, if we wanted to create a React project that used the tool TypeScript, we could use a template for that instead of having to install TypeScript manually.
+
+To create a React app that uses TypeScript, we can use the Create React App TypeScript template:
+
+```{code}javascript:Terminal
+npx create-react-app my-react-app --template typescript
+```
+
+## How to Run your React Project
+
+Once you have dragged your project into your code editor, you can open up your terminal (in VSCode, go to View > Terminal).
+
+To start your React project, you can simply run:
+
+```python:Terminal
+npm start
+```
+
+When we run our project, a new browser tab will automatically open on our computer's default browser to view our app.
+
+The development server will start up on localhost:3000 and, right away, we can see the starting home page for our app.
+
+![Main Page](/static/post_images/Screen-Shot-2021-02-03-at-8.56.40-PM.png)

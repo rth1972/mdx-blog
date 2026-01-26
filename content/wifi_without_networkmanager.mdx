@@ -1,0 +1,86 @@
+---
+title: Wifi setup without networkmanager
+date: '2025-07-02'
+tags: ['linux', 'code']
+draft: false
+summary: Wifi Setup without networkmanager.
+---
+
+Manual Wi-Fi Connection Guide
+=============================
+
+An interactive guide to connecting to Wi-Fi without a network manager.
+
+Prerequisites
+-------------
+
+Before you begin, ensure you have the following information and access. This guide assumes you are starting from a basic command prompt and need to establish a network connection to proceed.
+
+*   Your Wi-Fi network name (SSID) and password.
+*   Physical access to the device with a connected monitor and keyboard.
+*   The \`wpa\_supplicant\` package, which is typically installed by default on most Linux distributions.
+
+Connection Steps
+----------------
+
+Follow these steps sequentially. Each step provides a command that you can copy and paste directly into your terminal. This process will take you from the initial prompt to a fully networked device.
+
+### Step 1: Identify Your Wi-Fi Interface
+
+Find the name of your wireless network device. It usually starts with \`wlan\` or \`wlp\`. Note this name for the following steps.
+
+```bash
+ip link show
+```
+
+
+### Step 2: Activate the Wi-Fi Interface
+
+Enable the wireless device. Replace \`wlan0\` with the interface name you found in the previous step.
+
+```bash
+ip link set wlan0 up
+```
+
+### Step 3: Generate Network Configuration
+
+Create a configuration file with your Wi-Fi credentials. \*\*Remember to replace \`YOUR\_SSID\` and \`YOUR\_WIFI\_PASSWORD\`\*\* with your actual network name and password.
+
+```bash
+wpa_passphrase "YOUR_SSID" "YOUR_WIFI_PASSWORD" > /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+### Step 4: Start the Connection Process
+
+Run the \`wpa\_supplicant\` tool in the background to manage the Wi-Fi connection using the file you just created. Remember to use your correct interface name instead of \`wlan0\`.
+
+```bash
+wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf
+```
+
+### Step 5: Obtain an IP Address
+
+Request an IP address from your network's DHCP server. This allows your device to communicate on the network.
+
+```bash
+dhclient wlan0
+```
+
+### Step 6: Verify Connection
+
+Check if your device successfully obtained an IP address. Look for an \`inet\` entry in the output.
+
+```bash
+ip addr show wlan0
+```
+
+Important Considerations
+------------------------
+
+Connection is Not Persistent
+
+This manual connection is temporary and will be lost upon reboot. For a permanent setup, you must configure your system's network scripts (e.g., \`/etc/network/interfaces\` on Debian/Ubuntu or using \`systemd-networkd\`).
+
+Troubleshooting
+
+If you encounter issues, check kernel messages with \`dmesg\` or system logs with \`journalctl -xe\` for errors related to your Wi-Fi device or \`wpa\_supplicant\`.

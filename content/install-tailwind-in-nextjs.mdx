@@ -1,0 +1,90 @@
+---
+title: 'Install Tailwind CSS in Nextjs'
+date: '2024-05-26'
+tags: ['NextJS', 'Tailwind CSS', 'Guide']
+draft: false
+summary: 'Guide on how to install Tailwind css in your Nextjs App.'
+---
+
+### Setting up Tailwind CSS in a Next.js project.
+
+1.  Create your project
+    -------------------
+    
+    Start by creating a new Next.js project if you don’t have one set up already. The most common approach is to use [Create Next App](https://blog.robintehofstee.com/blog/create-simple-react-app).
+
+    ```javascript:Terminal
+    npx create-next-app@latest my-project --typescript --eslintcd my-project
+    ```
+    
+2.  Install Tailwind CSS
+    --------------------
+    
+    Install `tailwindcss` and its peer dependencies via npm, and then run the init command to generate both `tailwind.config.js` and `postcss.config.js`.
+    
+    ```javascript:Terminal
+    npm install -D tailwindcss postcss autoprefixernpx
+    tailwindcss init -p
+    ```
+
+3.  Configure your template paths
+    -----------------------------
+    
+    Add the paths to all of your template files in your `tailwind.config.js` file.
+    
+    ```javascript:tailwind.config.js
+    /** @type {import('tailwindcss').Config} */
+    module.exports = {
+      content: [
+        "./app/**/*.{js,ts,jsx,tsx,mdx}",
+        "./pages/**/*.{js,ts,jsx,tsx,mdx}",
+        "./components/**/*.{js,ts,jsx,tsx,mdx}",
+     
+        // Or if using `src` directory:
+        "./src/**/*.{js,ts,jsx,tsx,mdx}",
+      ],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    }
+    ```
+    
+4.  Add the Tailwind directives to your CSS
+    ---------------------------------------
+    
+    Add the `@tailwind` directives for each of Tailwind’s layers to your `globals.css` file.
+    
+    ```javascript:globals.css
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    ```
+    
+5.  Start your build process
+    ------------------------
+    
+    Run your build process with `npm run dev`.
+
+    ```javascript:Terminal
+    npm run dev
+    ```
+    
+6.  Start using Tailwind in your project
+    ------------------------------------
+    
+    Start using Tailwind’s utility classes to style your content.
+
+    ```javascript:index.tsx
+    export default function Home() {
+      return (
+        <h1 className="text-3xl font-bold underline">
+          Hello world!
+        </h1>
+      )
+    }
+    ```
+
+That’s it! You’ve successfully installed and set up Tailwind CSS in your Next.js project. Feel free to customize your styles using Tailwind’s extensive utility classes. If you have any more questions, feel free to ask! 🚀
+
+For more detailed information, you can refer to the official Tailwind CSS documentation for Next.js. 😊

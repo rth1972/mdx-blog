@@ -1,0 +1,70 @@
+---
+title: Create component in NextJS
+date: '2024-05-31'
+tags: ['NextJS', 'code']
+draft: false
+summary: How to create a simple component in NextJS.
+images: []
+---
+
+Creating a component in Next.js is similar to creating a React component. Here’s a simple example of how to create a functional component with an image using Next.js and Tailwind CSS for styling.
+
+First, let’s create a new component called `UserProfile.js`:
+
+```javascript:UserProfile.js
+import Image from 'next/image';
+import React from 'react';
+
+const UserProfile = ({ username, avatar }) => {
+  return (
+    <div className="flex items-center space-x-4 p-6 bg-white shadow rounded-lg">
+      <div className="w-16 h-16 relative">
+        <Image
+          src={avatar}
+          alt={`Avatar of ${username}`}
+          layout="fill"
+          className="rounded-full"
+        />
+      </div>
+      <div>
+        <p className="text-lg font-bold">{username}</p>
+        <p className="text-sm text-gray-600">Next.js Developer</p>
+      </div>
+    </div>
+  );
+};
+
+export default UserProfile;
+```
+
+In this component:
+
+We import the Image component from next/image to handle image optimization.
+We use Tailwind CSS classes to style the component (flex, items-center, etc.).
+The UserProfile component accepts username and avatar props to display user information.
+To use this component, you can import it into one of your pages or another component and pass the appropriate props:
+
+```javascript
+import UserProfile from '@/components/UserProfile';
+
+const HomePage = () => {
+  return (
+    <main className="p-8">
+      <UserProfile
+        username="Jane Doe"
+        avatar="/path/to/avatar.jpg" // Replace with your image path
+      />
+    </main>
+  );
+};
+
+export default HomePage;
+```
+
+In the HomePage component:
+
+We import the UserProfile component.
+We render the UserProfile component and pass username and avatar as props.
+Make sure to replace "/path/to/avatar.jpg" with the actual path to your image. If the image is local, it should be placed in the public directory of your Next.js project.
+
+This is a basic example to get you started with creating components in Next.js. 
