@@ -1,36 +1,42 @@
-# dependencies
-node_modules/
-.pnp
+# Dependencies
+/node_modules
+/.pnp
 .pnp.js
 
-# testing
-coverage/
+# Next.js Build Output
+/.next/
+/out/
 
-# next.js
-.next/
-out/
+# Production Build Files
 build/
-dist/
 
-# contentlayer
-.contentlayer/
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# local env files
-.env*.local
+# Environment Variables (IMPORTANT: keep your secrets off GitHub)
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# vercel
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Optional: If you want GitHub to ignore the auto-generated terminal files
+# (Only uncomment these if you want the user to generate them locally)
+# public/terminal.txt
+# public/about.txt
+# public/projects.txt
+# public/contact.txt
+
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts

@@ -1,0 +1,25 @@
+{
+  "title": "Prisma course for beginners",
+  "date": "2024-06-20T00:00:00.000Z",
+  "tags": [
+    "NextJS",
+    "code",
+    "prisma"
+  ],
+  "body": {
+    "raw": "\n## Prisma course for beginners.\n\nIn the video below you will find a comprehensive tutorial on using Prisma.io.\n\n* What is prisma?\n* How to use it.\n* Examples\n\nHe explains it wonderfully.\nAll credit goes to him.\n\n[![Prisma Course For Beginners - Full Prisma Tutorial CRUD](https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DJ8ObGtfy5n0)](https://www.youtube.com/watch?v=J8ObGtfy5n0)\n\nHere is a link to his [Youtube Channel](https://www.youtube.com/@PedroTechnologies) ",
+    "code": "var Component=(()=>{var m=Object.create;var o=Object.defineProperty;var d=Object.getOwnPropertyDescriptor;var p=Object.getOwnPropertyNames;var w=Object.getPrototypeOf,f=Object.prototype.hasOwnProperty;var g=(n,e)=>()=>(e||n((e={exports:{}}).exports,e),e.exports),x=(n,e)=>{for(var t in e)o(n,t,{get:e[t],enumerable:!0})},l=(n,e,t,s)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let i of p(e))!f.call(n,i)&&i!==t&&o(n,i,{get:()=>e[i],enumerable:!(s=d(e,i))||s.enumerable});return n};var b=(n,e,t)=>(t=n!=null?m(w(n)):{},l(e||!n||!n.__esModule?o(t,\"default\",{value:n,enumerable:!0}):t,n)),y=n=>l(o({},\"__esModule\",{value:!0}),n);var c=g((_,a)=>{a.exports=_jsx_runtime});var j={};x(j,{default:()=>h,frontmatter:()=>F});var r=b(c()),F={title:\"Prisma course for beginners\",date:\"2024-06-20\",tags:[\"NextJS\",\"code\",\"prisma\"],draft:!1,summary:\"Prisma course for beginners - Full Prisma Tutorial CRUD, Associations...\",images:[\"create_nextjs.jpeg\"]};function u(n){let e={a:\"a\",h2:\"h2\",img:\"img\",li:\"li\",p:\"p\",ul:\"ul\",...n.components};return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(e.h2,{children:\"Prisma course for beginners.\"}),`\n`,(0,r.jsx)(e.p,{children:\"In the video below you will find a comprehensive tutorial on using Prisma.io.\"}),`\n`,(0,r.jsxs)(e.ul,{children:[`\n`,(0,r.jsx)(e.li,{children:\"What is prisma?\"}),`\n`,(0,r.jsx)(e.li,{children:\"How to use it.\"}),`\n`,(0,r.jsx)(e.li,{children:\"Examples\"}),`\n`]}),`\n`,(0,r.jsx)(e.p,{children:`He explains it wonderfully.\nAll credit goes to him.`}),`\n`,(0,r.jsx)(e.p,{children:(0,r.jsx)(e.a,{href:\"https://www.youtube.com/watch?v=J8ObGtfy5n0\",children:(0,r.jsx)(e.img,{src:\"https://markdown-videos-api.jorgenkh.no/url?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DJ8ObGtfy5n0\",alt:\"Prisma Course For Beginners - Full Prisma Tutorial CRUD\"})})}),`\n`,(0,r.jsxs)(e.p,{children:[\"Here is a link to his \",(0,r.jsx)(e.a,{href:\"https://www.youtube.com/@PedroTechnologies\",children:\"Youtube Channel\"})]})]})}function h(n={}){let{wrapper:e}=n.components||{};return e?(0,r.jsx)(e,{...n,children:(0,r.jsx)(u,{...n})}):u(n)}return y(j);})();\n;return Component;"
+  },
+  "_id": "prisma-course-for-beginners.mdx",
+  "_raw": {
+    "sourceFilePath": "prisma-course-for-beginners.mdx",
+    "sourceFileName": "prisma-course-for-beginners.mdx",
+    "sourceFileDir": ".",
+    "contentType": "mdx",
+    "flattenedPath": "prisma-course-for-beginners"
+  },
+  "type": "Post",
+  "url": "/blog/prisma-course-for-beginners",
+  "slug": "prisma-course-for-beginners",
+  "readingTime": 1
+}
