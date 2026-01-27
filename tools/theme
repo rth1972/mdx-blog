@@ -1,0 +1,60 @@
+#!/bin/bash
+# ANSI Color Theme for Terminal Portfolio
+# Based on YSAP style with custom colors
+
+# Text Colors
+export CLR_PRIMARY="\033[1;36m"   # Bright Cyan - for headers
+export CLR_TEXT="\033[0m"         # Reset - normal text
+export CLR_WARN="\033[1;33m"      # Bright Yellow - for warnings/highlights
+export CLR_SUCCESS="\033[32m"     # Green - for success messages
+export CLR_ERROR="\033[1;31m"     # Bright Red - for errors
+export CLR_INFO="\033[1;34m"      # Bright Blue - for info
+export CLR_MUTED="\033[2;37m"     # Dim White - for secondary text
+
+# Box/Border Colors (ANSI escape sequences for box tool)
+export COLOR1=$'\e[38;5;214m'          # Orange
+export COLOR2=$'\e[38;5;39m'           # Bright Blue
+export COLOR3=$'\e[38;5;46m'           # Bright Green
+export COLOR4=$'\e[38;5;201m'          # Magenta/Pink
+export COLOR5=$'\e[38;5;51m'           # Cyan
+
+# Logo specific colors
+export COLOR6=$'\e[48;5;223m'          # Off-white background
+export COLOR7=$'\e[38;5;160m'          # Red for bars
+export COLOR8=$'\e[38;5;214;48;5;202m' # Yellow text on orange background
+
+# Reset
+export RST=$'\e[0m'
+
+# Helper: Print colored text
+print_colored() {
+  local color=$1
+  shift
+  echo -e "${color}$*${CLR_TEXT}"
+}
+
+# Helper: Print colored header
+print_header() {
+  echo -e "${CLR_PRIMARY}$*${CLR_TEXT}"
+}
+
+# Helper: Print warning
+print_warning() {
+  echo -e "${CLR_WARN}⚠ $*${CLR_TEXT}"
+}
+
+# Helper: Print success
+print_success() {
+  echo -e "${CLR_SUCCESS}✓ $*${CLR_TEXT}"
+}
+
+# Helper: Print error
+print_error() {
+  echo -e "${CLR_ERROR}✗ $*${CLR_TEXT}"
+}
+
+# Helper: Print info
+print_info() {
+  echo -e "${CLR_INFO}ℹ $*${CLR_TEXT}"
+}
+
