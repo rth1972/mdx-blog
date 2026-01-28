@@ -40,3 +40,8 @@ Thumbs.db
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# GitHub SSH keys
+github
+github.pub
+
